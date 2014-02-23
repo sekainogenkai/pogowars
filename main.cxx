@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     /* http://twinklebear.github.io/sdl2%20tutorials/2013/08/17/lesson-1-hello-world/ */
     /* To compile in Geany, run SHIFT-F9 (or Build -> Make) */
     /* TO run in Geany, hit F5. (will not automatically compile for you) or click Execute*/
-	if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
+	if (SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|SDL_INIT_EVENTS) != 0){
 		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
 		return 1;
 	}
@@ -29,8 +29,21 @@ int main(int argc, char *argv[])
     SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
     if (ren == NULL)
     {
-            std::cout << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
-            return 1;
+	    std::cerr << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
+	    std::cerr << "Trying without VSYNC" << std::endl;
+	    ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
+	    if (!ren)
+	    {
+		    std::cerr << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
+		    std::cerr << "Falling back to low-quality (no alpha blending, game may be unplayable) renderer." << std::endl;
+		    ren = SDL_CreateRenderer(win, -1, 0);
+		    if (!ren)
+		    {
+			    std::cerr << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
+			    std::cerr << "Well, I need a renderer and I can’t even get a low-quality one. Giving up." << std::endl;
+			    return 1;
+		    }
+	    }
     }
     
     SDL_Texture *tex = loadTexture(ren, "smile.png");
