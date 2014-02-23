@@ -5,3 +5,4 @@ Makefile.win
 *.exe
 smile.png
 pakman.png
+.settings
