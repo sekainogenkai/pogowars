@@ -1,5 +1,5 @@
 .POSIX:
-.PHONY: all
+.PHONY: all clean
 .SUFFIXES: .cxx .o .xcf .png
 
 SDL2_PKG = sdl2 SDL2_image
@@ -22,3 +22,6 @@ testsdl$(EXEEXT): $(OBJ)
 	$(MY_GIMP) -i -b '(let* ((image (car (gimp-file-load RUN-NONINTERACTIVE "$(<)" "$(<)")))) (file-png-save-defaults RUN-NONINTERACTIVE image (car (gimp-image-merge-visible-layers image CLIP-TO-IMAGE)) "$(@)" "$(@)"))' -b '(gimp-quit FALSE)'
 
 $(OBJ) $(RASTERS): Makefile
+
+clean:
+	rm -f $(OBJ) $(RASTERS) testsdl$(EXEEXT)
