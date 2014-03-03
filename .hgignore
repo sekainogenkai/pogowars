@@ -3,6 +3,10 @@ geany_run_script.bat
 Makefile.win
 *.o
 *.exe
-smile.png
-pakman.png
+*.png
+*.ttf
+Thumbs.db
+*.orig
+
+
 .settings

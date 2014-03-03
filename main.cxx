@@ -4,8 +4,8 @@ extern "C" {
 #include <math.h>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 }
-
 static SDL_Texture *loadTexture(SDL_Renderer *ren, const char *filename);
 static Uint32 tickTimerCallback(Uint32 interval, void *param);
 static double cart2angle(double x, double y);
@@ -14,18 +14,38 @@ int main(int argc, char *argv[])
 {
     /* http://twinklebear.github.io/sdl2%20tutorials/2013/08/17/lesson-1-hello-world/ */
     /* To compile in Geany, run SHIFT-F9 (or Build -> Make) */
-    /* TO run in Geany, hit F5. (will not automatically compile for you) or click Execute*/
+    /* To run in Geany, hit F5. (will not automatically compile for you) or click Execute*/
+    //This code will be filled with Kristofer's notes on what is happening because he is learning this for the first time.
+    
+    
+    //This starts SDL and all the subsystems needed. Done through SDL_Int. And if SDL_Init does not work then return one to quit SDL and print out problem
 	if (SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|SDL_INIT_EVENTS) != 0){
 		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
 		return 1;
 	}
+		
+	if(TTF_Init()==-1) {
+		std::cout <<"TTF_Init: " << TTF_GetError() << std::endl;
+		return 1;
+	}
+	// load font.ttf at size 16 into font
+	TTF_Font *font;
+	font=TTF_OpenFont("VeraMono.ttf", 32);
+	if(!font) {
+		std::cout <<"TTF_OpenFont:" << TTF_GetError() << std::endl;
+		return 1;
+	}
 	
-	SDL_Window *win = SDL_CreateWindow("Hello World!", 100, 100, 640, 480, SDL_WINDOW_MAXIMIZED|SDL_WINDOW_RESIZABLE/*|SDL_WINDOW_FULLSCREEN_DESKTOP*/);
+	
+	SDL_Window *win = SDL_CreateWindow("Angry Chase", 100, 100, 1920/1.5, 1080/1.5, SDL_WINDOW_MAXIMIZED|SDL_WINDOW_RESIZABLE|SDL_WINDOW_FULLSCREEN_DESKTOP);
+	void SDL_MaximizeWindow(SDL_Window* window);
     if (win == NULL){
 	    std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
 	    return 1;
     }
     
+    
+    //Creating a Renderer: Using hardware accelerated rendering and with vsync. If something goes wrong with that what is written in orange will be printed
     SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
     if (ren == NULL)
     {
@@ -46,10 +66,27 @@ int main(int argc, char *argv[])
 	    }
     }
     
-    SDL_Texture *tex = loadTexture(ren, "smile.png");
+    
+    SDL_Color color = {0,255,0};
+	SDL_Surface *text_surface = TTF_RenderText_Solid(font,"Hello World!",color);
+	if (!text_surface){
+		std::cout <<"TTF_RenderText_Solid: also Krisotfer is pretty cool" << TTF_GetError() << std::endl;
+		return 1;
+	}
+	SDL_Texture *tex_text = SDL_CreateTextureFromSurface(ren, text_surface);
+	SDL_FreeSurface(text_surface);
+    if (!tex_text)
+    {
+             std::cout << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+             return 1;
+    }
+	
+    //Loading a png image. Loads the image and output Unable to load if not able to load 
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Load images
+    SDL_Texture *tex = loadTexture(ren, "Angry_Chase.png");
     if (!tex)
     {
-		std::cerr << "Unable to load smile.png" << std::endl;
+		std::cerr << "Unable to load Angry_Chase.png" << std::endl;
 		return 1;
 	}
 	SDL_Texture *tex_pakman = loadTexture(ren, "pakman.png");
@@ -58,10 +95,15 @@ int main(int argc, char *argv[])
 		std::cerr << "Unable to load pakman.png" <<std::endl;
 		return 1;
 	}
+	
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Load images
 
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Setting timer
 	// Set up a user event for detecting timer events.
 	// See http://wiki.libsdl.org/SDL_AddTimer
 	Uint32 tickSdlEventCode = SDL_RegisterEvents(1);
+	//60 fps
 	int tickMilliseconds = 1000/60;
 	double tickSeconds = tickMilliseconds / 1000.0;
 	SDL_TimerID tickTimerID = SDL_AddTimer(tickMilliseconds, tickTimerCallback, &tickSdlEventCode);
@@ -70,15 +112,18 @@ int main(int argc, char *argv[])
 		std::cerr << "SDL_AddTimer() Error: " << SDL_GetError() << std::endl;
 		return 1;
 	}
+	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Setting timer
+	
+	
 
-	double pakman_speed = 128;
+	double pakman_speed = 500;
 	double position_x = 64;
 	double position_y = 64;
 	double direction_x = 0;
 	double direction_y = 0;
 	double angle = 0;
 	double angle_target = 0;
-	double angular_speed = 90;
+	double angular_speed = 1000;
 
 	bool quit = false;
 	bool animate = true;
@@ -209,6 +254,9 @@ int main(int argc, char *argv[])
 			SDL_QueryTexture(tex_pakman, NULL, NULL, &dst.w, &dst.h);
 			SDL_RenderCopyEx(ren, tex_pakman, NULL, &dst, angle, NULL, SDL_FLIP_NONE);
 			
+			dst.x = 32;
+			SDL_QueryTexture(tex_text, NULL, NULL, &dst.w, &dst.h);
+			SDL_RenderCopy(ren, tex_text, NULL, &dst);
 			
 			SDL_RenderPresent(ren);
 			redraw = false;
@@ -216,6 +264,8 @@ int main(int argc, char *argv[])
 	}
 
 	SDL_RemoveTimer(tickTimerID);
+	TTF_CloseFont(font);
+	TTF_Quit();
 	SDL_Quit();
     
     /*system("PAUSE");*/

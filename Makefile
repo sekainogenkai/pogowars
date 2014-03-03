@@ -2,13 +2,13 @@
 .PHONY: all clean
 .SUFFIXES: .cxx .o .xcf .png
 
-SDL2_PKG = sdl2 SDL2_image
+SDL2_PKG = sdl2 SDL2_image SDL2_ttf
 
 LIBS = $$(pkg-config --libs $(SDL2_PKG))
 MY_CXXFLAGS = -Wall $$(pkg-config --cflags $(SDL2_PKG))
 EXEEXT = .exe
 OBJ = main.o
-RASTERS = pakman.png smile.png
+RASTERS = pakman.png smile.png Angry_Chase.png
 
 MY_GIMP = $${GIMP-gimp}
 
