@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 	}
 	// load font.ttf at size 16 into font
 	TTF_Font *font;
-	font=TTF_OpenFont("VeraMono.ttf", 32);
+	font=TTF_OpenFont("VeraMono.ttf", 16);
 	if(!font) {
 		std::cout <<"TTF_OpenFont:" << TTF_GetError() << std::endl;
 		return 1;
@@ -67,12 +67,15 @@ int main(int argc, char *argv[])
     }
     
     
+    
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Make writing
     SDL_Color color = {0,255,0};
 	SDL_Surface *text_surface = TTF_RenderText_Solid(font,"Hello World!",color);
 	if (!text_surface){
 		std::cout <<"TTF_RenderText_Solid: also Krisotfer is pretty cool" << TTF_GetError() << std::endl;
 		return 1;
 	}
+	
 	SDL_Texture *tex_text = SDL_CreateTextureFromSurface(ren, text_surface);
 	SDL_FreeSurface(text_surface);
     if (!tex_text)
@@ -80,6 +83,7 @@ int main(int argc, char *argv[])
              std::cout << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
              return 1;
     }
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ make writing
 	
     //Loading a png image. Loads the image and output Unable to load if not able to load 
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Load images
@@ -89,12 +93,22 @@ int main(int argc, char *argv[])
 		std::cerr << "Unable to load Angry_Chase.png" << std::endl;
 		return 1;
 	}
-	SDL_Texture *tex_pakman = loadTexture(ren, "pakman.png");
-	if (!tex_pakman)
+	
+	SDL_Texture *tex_menuSelectBar = loadTexture(ren, "menuSelectBar.png");
+	if (!tex_menuSelectBar)
 	{
 		std::cerr << "Unable to load pakman.png" <<std::endl;
 		return 1;
 	}
+	
+	/*/
+	SDL_Texture *tex_menuSelectBar = loadTexture(ren, "menuSelectBar.png");
+	if(!tex_menuSelectBar);
+	{
+		std::cerr << "Unable to load menu SelectBar.png" <<std::endl;
+		return 1;
+	}
+	/*/
 	
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Load images
 
@@ -251,13 +265,19 @@ int main(int argc, char *argv[])
 			SDL_Rect dst;
 			dst.x = position_x;
 			dst.y = position_y;
-			SDL_QueryTexture(tex_pakman, NULL, NULL, &dst.w, &dst.h);
-			SDL_RenderCopyEx(ren, tex_pakman, NULL, &dst, angle, NULL, SDL_FLIP_NONE);
+			SDL_QueryTexture(tex_menuSelectBar, NULL, NULL, &dst.w, &dst.h);
+			SDL_RenderCopyEx(ren, tex_menuSelectBar, NULL, &dst, angle, NULL, SDL_FLIP_NONE);
 			
+			//Text loading
 			dst.x = 32;
 			SDL_QueryTexture(tex_text, NULL, NULL, &dst.w, &dst.h);
 			SDL_RenderCopy(ren, tex_text, NULL, &dst);
 			
+			//Menu bar loading
+			/*/
+			SDL_QueryTexture(tex_menuSelectBar, NULL, NULL, &dst.w, &dst.h);
+			SDL_RenderCopy(ren, tex_menuSelectBar, NULL, &dst);
+			/*/
 			SDL_RenderPresent(ren);
 			redraw = false;
 		}
