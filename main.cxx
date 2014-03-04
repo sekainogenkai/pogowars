@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 	double direction_y = 0;
 	double angle = 0;
 	double angle_target = 0;
-	double angular_speed = 10900;
+	double angular_speed = 109800;
 
 	bool quit = false;
 	bool animate = true;
