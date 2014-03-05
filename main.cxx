@@ -1,5 +1,10 @@
 #include <cstdlib>
 #include <iostream>
+#include <iomanip>
+#include <locale>
+#include <sstream>
+#include <string> 
+#include <streambuf>
 extern "C" {
 #include <math.h>
 #include <SDL.h>
@@ -8,7 +13,7 @@ extern "C" {
 }
 static SDL_Texture *loadTexture(SDL_Renderer *ren, const char *filename);
 static Uint32 tickTimerCallback(Uint32 interval, void *param);
-static double cart2angle(double x, double y);
+//static double cart2angle(double x, double y);
 
 int main(int argc, char *argv[])
 {
@@ -72,7 +77,7 @@ int main(int argc, char *argv[])
     SDL_Color color = {0,255,0};
 	SDL_Surface *text_surface = TTF_RenderText_Solid(font,"Hello World",color);
 	if (!text_surface){
-		std::cout <<"TTF_RenderText_Solid: also Krisotfer is pretty cool" << TTF_GetError() << std::endl;
+		std::cout <<"TTF_RenderText_Solid: not working" << TTF_GetError() << std::endl;
 		return 1;
 	}
 	
@@ -94,23 +99,16 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	
-	SDL_Texture *tex_pakman = loadTexture(ren, "pakman.png");
-	if (!tex_pakman)
-	{
-		std::cerr << "Unable to load pakman.png" <<std::endl;
-		return 1;
-	}
-	
 	
 	SDL_Texture *tex_menuSelectBar = loadTexture(ren, "menuSelectBar.png");
-	if(!tex_menuSelectBar);
+	if(!tex_menuSelectBar)
 	{
 		std::cerr << "Unable to load menu SelectBar.png" <<std::endl;
 		return 1;
 	}
 	
 	
-	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Load images
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ Load images
 
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Setting timer
@@ -119,32 +117,31 @@ int main(int argc, char *argv[])
 	Uint32 tickSdlEventCode = SDL_RegisterEvents(1);
 	//60 fps
 	int tickMilliseconds = 1000/60;
-	double tickSeconds = tickMilliseconds / 1000.0;
+	//double tickSeconds = tickMilliseconds / 1000.0;
 	SDL_TimerID tickTimerID = SDL_AddTimer(tickMilliseconds, tickTimerCallback, &tickSdlEventCode);
 	if (!tickTimerID)
 	{
 		std::cerr << "SDL_AddTimer() Error: " << SDL_GetError() << std::endl;
 		return 1;
 	}
-	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Setting timer
+	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ Setting timer
 	
 	
-
-	double pakman_speed = 500;
-	double position_x = 64;
-	double position_y = 64;
-	double direction_x = 0;
-	double direction_y = 0;
-	double angle = 0;
-	double angle_target = 0;
-	double angular_speed = 109800;
+	int speed_x = 0;
+	int speed_y = 0;
+	double position_x = 500;
+	double position_y = 300;
 
 	bool quit = false;
 	bool animate = true;
 	bool redraw = true;
+	bool menu = true;
 	SDL_Event event;
+	
+	
     while (!quit && SDL_WaitEvent(&event))
     {
+		if(menu){
 		do
 		{
 			switch (event.type)
@@ -172,86 +169,64 @@ int main(int argc, char *argv[])
 					case SDLK_RIGHT:
 						if (event.key.state == SDL_PRESSED)
 						{
-							direction_x = 1;
-							angle_target = 0;
+							speed_x = 1;
+						}else{
+							speed_x = 0;
 						}
-						else
-							if (direction_x > 0)
-								direction_x = 0;
 						break;
 					case SDLK_LEFT:
 						if (event.key.state == SDL_PRESSED)
-							direction_x = -1;
-						else
-							if (direction_x < 0)
-								direction_x = 0;
+							
+						{
+							speed_x = -1;
+						}else{
+							speed_x = 0;
+						}
+						
 						break;
 					case SDLK_UP:
 						if (event.key.state == SDL_PRESSED)
-							// (0, 0) is upper-left hand corner.
-							direction_y = -1;
-						else
-							if (direction_y < 0)
-								direction_y = 0;
+						{
+							speed_y = -1;
+						}else{
+							speed_y = 0;
+						}
 						break;
 					case SDLK_DOWN:
 						if (event.key.state == SDL_PRESSED)
-							// (0, 0) is upper-left hand corner.
-							direction_y = 1;
-						else
-							if (direction_y > 0)
-								direction_y = 0;
+						{
+							speed_y = 1;
+						}else{
+							speed_y = 0;
+						}
 						break;
 					case SDLK_ESCAPE:
 						quit = 1;
 						break;
 				}
-				// Recalculate angle because the key handlers may have changed the direction
-				if (fabs(direction_x) < 0.01 && fabs(direction_y) > 0.01)
-					angle_target = direction_y > 0 ? 90 : 270;
-				else if (fabs(direction_x) > 0.01)
-					angle_target = cart2angle(direction_x, direction_y);
-				else
-					// pakman has stopped moving, stop turning too
-					angle_target = angle;
-				break;
 			case SDL_USEREVENT:
 				if (event.user.type == tickSdlEventCode)
 					animate = true;
 				break;
 			}
+			
 			// Eat all of the other events while we're at it.
 		} while (SDL_PollEvent(&event));
 
 		if (animate)
 		{
-			// Amount pakman will rotate given his velocity
-			double angle_motion = angular_speed*tickSeconds;
-			if (fabs(angle_target - angle) < angle_motion)
-			{
-				// If pakman would rotate past the target angle, just set his angle
-				angle = angle_target;
-
-				// pakman only moves if he's pointing in the right direction and if he's supposedly moving.
-				if (direction_x || direction_y)
-				{
-					position_x += cosf(angle / 180 * M_PI) * pakman_speed * tickSeconds;
-					position_y += sinf(angle / 180 * M_PI) * pakman_speed * tickSeconds;
-				}
-			}
-			else
-			{
-				// Otherwise, get pakman's angle closer to the target angle
-				if (fmod(angle_target - angle + 360, 360) < 180)
-					// then go counter-clockwsise
-					angle += angle_motion;
-				else
-					// clockwise
-					angle -= angle_motion;
-				angle = fmod(angle + 360, 360);
-			}
-
+			SDL_Color color = {0,0,0};
+			SDL_Surface *text_surface = TTF_RenderText_Solid(font, str(position_x).c_str(),color);
+			SDL_Texture *tex_text = SDL_CreateTextureFromSurface(ren, text_surface);
+			SDL_FreeSurface(text_surface);
+			position_x += speed_x;
+			position_y += speed_y;
+			
+			
+			
+			
 			// After updating animation stuffs, mark that we're ready for a redraw
+			
 			redraw = true;
 			animate = false;
 		}
@@ -265,21 +240,25 @@ int main(int argc, char *argv[])
 			SDL_Rect dst;
 			dst.x = position_x;
 			dst.y = position_y;
-			SDL_QueryTexture(tex_pakman, NULL, NULL, &dst.w, &dst.h);
-			SDL_RenderCopyEx(ren, tex_pakman, NULL, &dst, 0, NULL, SDL_FLIP_NONE);
 			
 			SDL_QueryTexture(tex_menuSelectBar, NULL, NULL, &dst.w, &dst.h);
 			SDL_RenderCopyEx(ren, tex_menuSelectBar, NULL, &dst, 0, NULL, SDL_FLIP_NONE);
 			
-			//Text loading
+			//Text loading example
 			dst.x = 32;
 			SDL_QueryTexture(tex_text, NULL, NULL, &dst.w, &dst.h);
 			SDL_RenderCopy(ren, tex_text, NULL, &dst);
 			
+			//X and Y display places
+			dst.x = 499;
+			dst.y = 500;
+			SDL_QueryTexture(tex_text, NULL, NULL, &dst.w, &dst.h);
+			SDL_RenderCopy(ren, tex_text, NULL, &dst);
 			
 			
 			SDL_RenderPresent(ren);
 			redraw = false;
+		}
 		}
 	}
 
@@ -325,10 +304,11 @@ static Uint32 tickTimerCallback(Uint32 interval, void *param)
 }
 
 // returns degrees
-static double cart2angle(double x, double y)
+/*/static double cart2angle(double x, double y)
 {
 	if (fabs(y) < 0.0001 && fabs(y) > 0.01)
 		return y > 0 ? 90 : 270;
 	else
 		return fmod(180 * atanf(y/x) / M_PI + (x > 0 ? 0 : 180) + 360, 360);
 }
+* /*/
