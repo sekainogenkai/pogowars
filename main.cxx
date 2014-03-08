@@ -12,17 +12,17 @@ extern "C" {
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 }
-static SDL_Texture *loadTexture(SDL_Renderer *ren, const char *filename);
+
+
+#include "game_mode.hxx"
+#include "menu_game_mode.hxx"
+#include "main.hxx"
+
+
 static Uint32 tickTimerCallback(Uint32 interval, void *param);
 //static double cart2angle(double x, double y);
 
-//Number to string done  Copyright © 2014 Nathan Phillip Brink <ohnobinki@ohnopublishing.net>
-template <class T> static std::string str(const T &o)
-{
-  std::stringstream sb;
-  sb << o;
-  return sb.str();
-}
+
 
 int main(int argc, char *argv[])
 {
@@ -83,26 +83,11 @@ int main(int argc, char *argv[])
     
     
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Make writing
-    SDL_Color color = {0,255,0};
-	SDL_Surface *text_surface = TTF_RenderText_Solid(font,"Hello World",color);
-	if (!text_surface){
-		std::cout <<"TTF_RenderText_Solid: not working" << TTF_GetError() << std::endl;
-		return 1;
-	}
-	
-	SDL_Texture *tex_text = SDL_CreateTextureFromSurface(ren, text_surface);
-	SDL_FreeSurface(text_surface);
-    if (!tex_text)
-    {
-             std::cout << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
-             return 1;
-    }
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ make writing
 	
     //Loading a png image. Loads the image and output Unable to load if not able to load 
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Load images
-    SDL_Texture *tex = loadTexture(ren, "Angry_Chase.png");
-	SDL_Texture *tex_menuSelectBar = loadTexture(ren, "menuSelectBar.png");
+
 	SDL_Texture *tex_map = loadTexture(ren, "Map.png");
 	SDL_Texture *tex_playerOne = loadTexture(ren, "playerOne.png");
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ Load images
@@ -129,313 +114,96 @@ int main(int argc, char *argv[])
 	//Start the things needed to run the game
 	bool quit = false;
 	SDL_Event event;
-	SDL_ShowCursor(0);
-		
-		
-		
-		
-		
+	SDL_ShowCursor(SDL_DISABLE);
+	
+	game_mode *game_modes[] = {
+		new menu_game_mode(ren),
+	};
+	int current_game_mode = 0;
+
     while (!quit)
     {
 		//Set up needed variables
 		bool animate = true;
 		bool redraw = true;
 		bool menu = true;
-		int textPos_x = 40;
-		int position_x = 564;
-		int menuPosition = 1;
-		int menuBar_y = 281;
 		
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ IN MENU LOOP
 		while(menu && SDL_WaitEvent(&event) && !quit){
-		do
-		{
-			switch (event.type)
+			do
 			{
-			case SDL_QUIT:
-				quit = true;
-				break;
-			case SDL_WINDOWEVENT:
-				switch (event.window.event)
+				// call mode-specific event handler
+				game_modes[current_game_mode]->processEvents(&event, &current_game_mode);
+				// run generic event handlers
+				switch (event.type)
 				{
-				case SDL_WINDOWEVENT_RESIZED:
-					redraw = true;
-					break;
-				case SDL_WINDOWEVENT_CLOSE:
+				case SDL_QUIT:
 					quit = true;
 					break;
-				}
-				break;
-			case SDL_KEYDOWN:
-			case SDL_KEYUP:
-				if (event.key.repeat)
+				case SDL_WINDOWEVENT:
+					switch (event.window.event)
+					{
+					case SDL_WINDOWEVENT_RESIZED:
+						redraw = true;
+						break;
+					case SDL_WINDOWEVENT_CLOSE:
+						quit = true;
+						break;
+					}
 					break;
-				switch (event.key.keysym.sym)
-				{
-					case SDLK_RIGHT:
-						if (event.key.state == SDL_PRESSED)
-						{
-							//Well nothing here
-						}
+				case SDL_KEYDOWN:
+					if (event.key.repeat)
 						break;
-					case SDLK_LEFT:
-						if (event.key.state == SDL_PRESSED)
-							
-						{
-							//Well Nothing here
-						}
-						break;
-					case SDLK_UP:
-						if (event.key.state == SDL_PRESSED)
-						{
-							menuPosition--;
-						}
-						break;
-					case SDLK_DOWN:
-						if (event.key.state == SDL_PRESSED)
-						{
-							menuPosition++;
-						}
-						break;
-					case SDLK_RETURN:
-						if (event.key.state == SDL_PRESSED)
-						{
-							menu =false;
-						}
-						break;
+					switch (event.key.keysym.sym)
+					{
 					case SDLK_ESCAPE:
 						quit = true;
 						menu = false;
 						break;
+					}
+					break;
+				case SDL_USEREVENT:
+					if (event.user.type == tickSdlEventCode)
+						animate = true;
+					break;
 				}
-				break;
-			case SDL_USEREVENT:
-				if (event.user.type == tickSdlEventCode)
-					animate = true;
-				break;
-			}
-			
-			// Eat all of the other events while we're at it.
-		} while (SDL_PollEvent(&event));
+				
+				// Eat all of the other events while we're at it.
+			} while (SDL_PollEvent(&event));
 
 			//Logic end and then move where it should be moved
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Game logic after input
-			if(menuPosition < 1)
-				menuPosition = 1;
-			if(menuPosition > 3)
-				menuPosition =3;
-			if(menuPosition == 1)
-				menuBar_y = 281;
-			else if (menuPosition == 2)
-				menuBar_y = 522;
-			else if (menuPosition == 3)
-				menuBar_y = 789;
-				
+		
 			
 			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ game logic after input
 			
 			
-		if (animate)
-		{
-			textPos_x++;
-
-			// After updating animation stuffs, mark that we're ready for a redraw
-			redraw = true;
-			animate = false;
-		}
-
-		if (redraw)
-		{
-			SDL_RenderClear(ren);
-			SDL_RenderCopy(ren, tex, NULL, NULL);
-			
-			// Load menu select bar and specify its position
-			SDL_Rect dst;
-			dst.x = position_x;
-			dst.y = menuBar_y;
-			
-			SDL_QueryTexture(tex_menuSelectBar, NULL, NULL, &dst.w, &dst.h);
-			SDL_RenderCopyEx(ren, tex_menuSelectBar, NULL, &dst, 0, NULL, SDL_FLIP_NONE);
-			
-			//Text loading example
-			dst.x = 32;
-			SDL_QueryTexture(tex_text, NULL, NULL, &dst.w, &dst.h);
-			SDL_RenderCopy(ren, tex_text, NULL, &dst);
-			
-
-			//For displaying xPos
-			SDL_Color colorBlack = {0,0,0};
-			SDL_Surface *text_surface = TTF_RenderText_Solid(font, str(position_x).c_str(),colorBlack);
-			SDL_Texture *tex_place = SDL_CreateTextureFromSurface(ren, text_surface);
-			SDL_FreeSurface(text_surface);
-			dst.x = 499;
-			dst.y = 500;
-			SDL_QueryTexture(tex_text, NULL, NULL, &dst.w, &dst.h);
-			SDL_RenderCopy(ren, tex_place, NULL, &dst);
-			SDL_DestroyTexture(tex_place);
-			
-			// Y display
-			//For display menuBar_y
-			SDL_Color colorSomething = {45,1,200};
-			text_surface = TTF_RenderText_Solid(font, str(menuBar_y).c_str(), colorSomething);
-			SDL_Texture *tex_menuBar_y = SDL_CreateTextureFromSurface(ren, text_surface);
-			SDL_FreeSurface(text_surface);
-			dst.x = textPos_x;
-			dst.y = 500;
-			SDL_RenderCopy(ren, tex_menuBar_y, NULL, &dst);
-			SDL_DestroyTexture(tex_menuBar_y);
-			
-			SDL_RenderPresent(ren);
-			redraw = false;
-		}
-	}
-		
-	
-
-	
-	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/ end menu loop           OOOOOO   OOOOO   OO                         
-	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end menu loop          O ---    O   O   O  O                 
-	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end menu loop          OOOOO    O   O   O O                 
-	
-	
-	
-	
-	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ onePlayerGame start LOOOP
-		
-	while(menuBar_y == 281 && SDL_WaitEvent(&event) && !quit){
-		do
-		{
-			switch (event.type)
+			if (animate)
 			{
-			case SDL_QUIT:
-				quit = true;
-				break;
-			case SDL_WINDOWEVENT:
-				switch (event.window.event)
-				{
-				case SDL_WINDOWEVENT_RESIZED:
-					redraw = true;
-					break;
-				case SDL_WINDOWEVENT_CLOSE:
-					quit = true;
-					break;
-				}
-				break;
-			case SDL_KEYDOWN:
-			case SDL_KEYUP:
-				if (event.key.repeat)
-					break;
-				switch (event.key.keysym.sym)
-				{
-					case SDLK_RIGHT:
-						if (event.key.state == SDL_PRESSED)
-						{
-							//Well nothing here
-						}
-						break;
-					case SDLK_LEFT:
-						if (event.key.state == SDL_PRESSED)
-							
-						{
-							//Well Nothing here
-						}
-						break;
-					case SDLK_UP:
-						if (event.key.state == SDL_PRESSED)
-						{
-							menuPosition--;
-						}
-						break;
-					case SDLK_DOWN:
-						if (event.key.state == SDL_PRESSED)
-						{
-							menuPosition++;
-						}
-						break;
-					case SDLK_ESCAPE:
-						menuBar_y =0;
-						break;
-				}
-				break;
-			case SDL_USEREVENT:
-				if (event.user.type == tickSdlEventCode)
-					animate = true;
-				break;
+				game_modes[current_game_mode]->animate();
+	
+				// After updating animation stuffs, mark that we're ready for a redraw
+				redraw = true;
+				animate = false;
 			}
-			
-			// Eat all of the other events while we're at it.
-		} while (SDL_PollEvent(&event));
-
-
-		if (animate)
-		{
-			textPos_x++;
-
-			// After updating animation stuffs, mark that we're ready for a redraw
-			redraw = true;
-			animate = false;
-		}
-
-		if (redraw)
-		{
-			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DYNAMIC STRINGS
-			
-			
-			
-		
-			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ DYNAMIC STRINGS
-
-			SDL_RenderClear(ren);
-			SDL_RenderCopy(ren, tex_map, NULL, NULL);
-			
-			// Load menu select bar and specify its position
-			SDL_Rect dst;
-			dst.x = position_x;
-			dst.y = menuBar_y;
-			
-			SDL_QueryTexture(tex_menuSelectBar, NULL, NULL, &dst.w, &dst.h);
-			SDL_RenderCopyEx(ren, tex_menuSelectBar, NULL, &dst, 0, NULL, SDL_FLIP_NONE);
-			
-			//Text loading example
-			dst.x = 32;
-			SDL_QueryTexture(tex_text, NULL, NULL, &dst.w, &dst.h);
-			SDL_RenderCopy(ren, tex_text, NULL, &dst);
-			
-			//X and Y display
-			//For displaying xPos
-			SDL_Color colorBlack = {0,0,0};
-			SDL_Surface *text_surface = TTF_RenderText_Solid(font, str(position_x).c_str(),colorBlack);
-			SDL_Texture *tex_place = SDL_CreateTextureFromSurface(ren, text_surface);
-			SDL_FreeSurface(text_surface);
-			dst.x = 499;
-			dst.y = 500;
-			SDL_QueryTexture(tex_text, NULL, NULL, &dst.w, &dst.h);
-			SDL_RenderCopy(ren, tex_place, NULL, &dst);
-			SDL_DestroyTexture(tex_place);
-			
-			// Y display
-			//For display menuBar_y
-			SDL_Color colorSomething = {45,1,200};
-			text_surface = TTF_RenderText_Solid(font, str(menuBar_y).c_str(), colorSomething);
-			SDL_Texture *tex_menuBar_y = SDL_CreateTextureFromSurface(ren, text_surface);
-			SDL_FreeSurface(text_surface);
-			dst.x = textPos_x;
-			dst.y = 500;
-			SDL_RenderCopy(ren, tex_menuBar_y, NULL, &dst);
-			SDL_DestroyTexture(tex_menuBar_y);
-			
-			SDL_RenderPresent(ren);
-			redraw = false;
+	
+			if (redraw)
+			{
+				SDL_RenderClear(ren);
+				game_modes[current_game_mode]->render(ren, font);
+				
+				SDL_RenderPresent(ren);
+				redraw = false;
 			}
 		}
-
-}
+	} /* while (!quit) */
 
 	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end player one game
-	
+	for (size_t i = 0; i < sizeof(game_modes)/sizeof(game_mode*); i++){
+		delete game_modes[i];
+	}
 	// Cleanup	
-    SDL_DestroyTexture(tex);
-	SDL_DestroyTexture(tex_menuSelectBar);
+   
 	SDL_DestroyTexture(tex_map);
 	SDL_DestroyTexture(tex_playerOne);
 	
@@ -448,7 +216,7 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 
-static SDL_Texture *loadTexture(SDL_Renderer *ren, const char *filename)
+SDL_Texture *loadTexture(SDL_Renderer *ren, const char *filename)
 {
 	SDL_Surface *bmp = IMG_Load(filename);
     if (!bmp)
