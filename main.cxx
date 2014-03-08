@@ -141,13 +141,13 @@ int main(int argc, char *argv[])
 	//Start the things needed to run the game
 	bool quit = false;
 	SDL_Event event;
-	
+	SDL_ShowCursor(0);
 		
 		
 		
 		
 		
-    while (!quit && SDL_WaitEvent(&event))
+    while (!quit)
     {
 		//Set up needed variables
 		bool animate = true;
@@ -209,8 +209,14 @@ int main(int argc, char *argv[])
 							menuPosition++;
 						}
 						break;
+					case SDLK_RETURN:
+						if (event.key.state == SDL_PRESSED)
+						{
+							menu =false;
+						}
+						break;
 					case SDLK_ESCAPE:
-						quit = 1;
+						quit = true;
 						menu = false;
 						break;
 				}
@@ -244,8 +250,6 @@ int main(int argc, char *argv[])
 			
 			
 			
-			
-			
 			//Logic end and then move where it should be moved
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Game logic after input
 			if(menuPosition < 1)
@@ -262,6 +266,8 @@ int main(int argc, char *argv[])
 			textPos_x++;
 			
 			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ game logic after input
+			
+			
 		if (animate)
 		{
 			// After updating animation stuffs, mark that we're ready for a redraw
@@ -302,23 +308,21 @@ int main(int argc, char *argv[])
 			SDL_RenderPresent(ren);
 			redraw = false;
 		}
-		}
+	}
 		
 	
-	}
+
 	
-	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/ end menu loop
-	
-	
-	
-	
+	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/ end menu loop           OOOOOO   OOOOO   OO                         
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end menu loop          O ---    O   O   O  O                 
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end menu loop          OOOOO    O   O   O O                 
 	
 	
-	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ one player game mode starting 
-	bool onePlayer = true;
-	bool twoPlayer = true;
-	while( && !quit && menuBar_y && SDL_WaitEvent(&event))
-	{
+	
+	
+	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ onePlayerGame start LOOOP
+		
+	while(menuBar_y == 281 && SDL_WaitEvent(&event) && !quit){
 		do
 		{
 			switch (event.type)
@@ -369,8 +373,7 @@ int main(int argc, char *argv[])
 						}
 						break;
 					case SDLK_ESCAPE:
-						quit = 1;
-						menu = false;
+						menuBar_y =0;
 						break;
 				}
 			case SDL_USEREVENT:
@@ -407,20 +410,12 @@ int main(int argc, char *argv[])
 			
 			//Logic end and then move where it should be moved
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Game logic after input
-			if(menuPosition < 1)
-				menuPosition = 1;
-			if(menuPosition > 3)
-				menuPosition =3;
-			if(menuPosition == 1)
-				menuBar_y = 281;
-			else if (menuPosition == 2)
-				menuBar_y = 522;
-			else if (menuPosition == 3)
-				menuBar_y = 789;
 				
 			textPos_x++;
 			
 			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ game logic after input
+			
+			
 		if (animate)
 		{
 			// After updating animation stuffs, mark that we're ready for a redraw
@@ -460,26 +455,21 @@ int main(int argc, char *argv[])
 			
 			SDL_RenderPresent(ren);
 			redraw = false;
+			}
 		}
-		}
-		
 	
-	}
+std::cerr << menuBar_y << ":" << quit << std::endl;
+		
+
+	
+	
 
 
 
 
 
+}
 
-
-
-
-
-
-
-
-
-	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Break and close things down
 	SDL_RemoveTimer(tickTimerID);
 	TTF_CloseFont(font);
 	TTF_Quit();
