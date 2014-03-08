@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string> 
 #include <streambuf>
+
 extern "C" {
 #include <math.h>
 #include <SDL.h>
@@ -14,6 +15,14 @@ extern "C" {
 static SDL_Texture *loadTexture(SDL_Renderer *ren, const char *filename);
 static Uint32 tickTimerCallback(Uint32 interval, void *param);
 //static double cart2angle(double x, double y);
+
+//Number to string done  Copyright © 2014 Nathan Phillip Brink <ohnobinki@ohnopublishing.net>
+template <class T> static std::string str(const T &o)
+{
+  std::stringstream sb;
+  sb << o;
+  return sb.str();
+}
 
 int main(int argc, char *argv[])
 {
@@ -35,7 +44,7 @@ int main(int argc, char *argv[])
 	}
 	// load font.ttf at size 16 into font
 	TTF_Font *font;
-	font=TTF_OpenFont("VeraMono.ttf", 16);
+	font=TTF_OpenFont("VeraMono.ttf", 20);
 	if(!font) {
 		std::cout <<"TTF_OpenFont:" << TTF_GetError() << std::endl;
 		return 1;
@@ -127,21 +136,30 @@ int main(int argc, char *argv[])
 	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ Setting timer
 	
 	
-	int speed_x = 0;
-	int speed_y = 0;
-	double position_x = 500;
-	double position_y = 300;
-
+	
+	
+	//Start the things needed to run the game
 	bool quit = false;
-	bool animate = true;
-	bool redraw = true;
-	bool menu = true;
 	SDL_Event event;
 	
-	
+		
+		
+		
+		
+		
     while (!quit && SDL_WaitEvent(&event))
     {
-		if(menu){
+		//Set up needed variables
+		bool animate = true;
+		bool redraw = true;
+		bool menu = true;
+		int textPos_x = 40;
+		int position_x = 564;
+		int menuPosition = 1;
+		int menuBar_y = 281;
+		
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ IN MENU LOOP
+		while(menu && SDL_WaitEvent(&event) && !quit){
 		do
 		{
 			switch (event.type)
@@ -169,39 +187,31 @@ int main(int argc, char *argv[])
 					case SDLK_RIGHT:
 						if (event.key.state == SDL_PRESSED)
 						{
-							speed_x = 1;
-						}else{
-							speed_x = 0;
+							//Well nothing here
 						}
 						break;
 					case SDLK_LEFT:
 						if (event.key.state == SDL_PRESSED)
 							
 						{
-							speed_x = -1;
-						}else{
-							speed_x = 0;
+							//Well Nothing here
 						}
-						
 						break;
 					case SDLK_UP:
 						if (event.key.state == SDL_PRESSED)
 						{
-							speed_y = -1;
-						}else{
-							speed_y = 0;
+							menuPosition--;
 						}
 						break;
 					case SDLK_DOWN:
 						if (event.key.state == SDL_PRESSED)
 						{
-							speed_y = 1;
-						}else{
-							speed_y = 0;
+							menuPosition++;
 						}
 						break;
 					case SDLK_ESCAPE:
 						quit = 1;
+						menu = false;
 						break;
 				}
 			case SDL_USEREVENT:
@@ -213,18 +223,47 @@ int main(int argc, char *argv[])
 			// Eat all of the other events while we're at it.
 		} while (SDL_PollEvent(&event));
 
+
+			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DYNAMIC STRINGS
+			
+			//For displaying xPos
+			SDL_Color colorBlack = {0,0,0};
+			SDL_Surface *text_surface = TTF_RenderText_Solid(font, str(position_x).c_str(),colorBlack);
+			SDL_Texture *tex_place = SDL_CreateTextureFromSurface(ren, text_surface);
+			SDL_FreeSurface(text_surface);
+			
+			//For display menuBar_y
+			SDL_Color colorSomething = {45,1,200};
+			text_surface = TTF_RenderText_Solid(font, str(menuBar_y).c_str(), colorSomething);
+			SDL_Texture *tex_menuBar_y = SDL_CreateTextureFromSurface(ren, text_surface);
+			SDL_FreeSurface(text_surface);
+			
+		
+			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ DYNAMIC STRINGS
+			
+			
+			
+			
+			
+			
+			//Logic end and then move where it should be moved
+			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Game logic after input
+			if(menuPosition < 1)
+				menuPosition = 1;
+			if(menuPosition > 3)
+				menuPosition =3;
+			if(menuPosition == 1)
+				menuBar_y = 281;
+			else if (menuPosition == 2)
+				menuBar_y = 522;
+			else if (menuPosition == 3)
+				menuBar_y = 789;
+				
+			textPos_x++;
+			
+			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ game logic after input
 		if (animate)
 		{
-			SDL_Color color = {0,0,0};
-			SDL_Surface *text_surface = TTF_RenderText_Solid(font, str(position_x).c_str(),color);
-			SDL_Texture *tex_text = SDL_CreateTextureFromSurface(ren, text_surface);
-			SDL_FreeSurface(text_surface);
-			position_x += speed_x;
-			position_y += speed_y;
-			
-			
-			
-			
 			// After updating animation stuffs, mark that we're ready for a redraw
 			
 			redraw = true;
@@ -236,10 +275,10 @@ int main(int argc, char *argv[])
 			SDL_RenderClear(ren);
 			SDL_RenderCopy(ren, tex, NULL, NULL);
 			
-			// Load pakman rectangle's size and specify its position.
+			// Load menu select bar and specify its position
 			SDL_Rect dst;
 			dst.x = position_x;
-			dst.y = position_y;
+			dst.y = menuBar_y;
 			
 			SDL_QueryTexture(tex_menuSelectBar, NULL, NULL, &dst.w, &dst.h);
 			SDL_RenderCopyEx(ren, tex_menuSelectBar, NULL, &dst, 0, NULL, SDL_FLIP_NONE);
@@ -249,19 +288,198 @@ int main(int argc, char *argv[])
 			SDL_QueryTexture(tex_text, NULL, NULL, &dst.w, &dst.h);
 			SDL_RenderCopy(ren, tex_text, NULL, &dst);
 			
-			//X and Y display places
+			//X and Y display
 			dst.x = 499;
 			dst.y = 500;
 			SDL_QueryTexture(tex_text, NULL, NULL, &dst.w, &dst.h);
-			SDL_RenderCopy(ren, tex_text, NULL, &dst);
+			SDL_RenderCopy(ren, tex_place, NULL, &dst);
 			
+			// Y display
+			dst.x = textPos_x;
+			dst.y = 500;
+			SDL_RenderCopy(ren, tex_menuBar_y, NULL, &dst);
 			
 			SDL_RenderPresent(ren);
 			redraw = false;
 		}
 		}
+		
+	
+	}
+	
+	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/ end menu loop
+	
+	
+	
+	
+	
+	
+	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ one player game mode starting 
+	bool onePlayer = true;
+	bool twoPlayer = true;
+	while( && !quit && menuBar_y && SDL_WaitEvent(&event))
+	{
+		do
+		{
+			switch (event.type)
+			{
+			case SDL_QUIT:
+				quit = true;
+				break;
+			case SDL_WINDOWEVENT:
+				switch (event.window.event)
+				{
+				case SDL_WINDOWEVENT_RESIZED:
+					redraw = true;
+					break;
+				case SDL_WINDOWEVENT_CLOSE:
+					quit = true;
+					break;
+				}
+				break;
+			case SDL_KEYDOWN:
+			case SDL_KEYUP:
+				if (event.key.repeat)
+					break;
+				switch (event.key.keysym.sym)
+				{
+					case SDLK_RIGHT:
+						if (event.key.state == SDL_PRESSED)
+						{
+							//Well nothing here
+						}
+						break;
+					case SDLK_LEFT:
+						if (event.key.state == SDL_PRESSED)
+							
+						{
+							//Well Nothing here
+						}
+						break;
+					case SDLK_UP:
+						if (event.key.state == SDL_PRESSED)
+						{
+							menuPosition--;
+						}
+						break;
+					case SDLK_DOWN:
+						if (event.key.state == SDL_PRESSED)
+						{
+							menuPosition++;
+						}
+						break;
+					case SDLK_ESCAPE:
+						quit = 1;
+						menu = false;
+						break;
+				}
+			case SDL_USEREVENT:
+				if (event.user.type == tickSdlEventCode)
+					animate = true;
+				break;
+			}
+			
+			// Eat all of the other events while we're at it.
+		} while (SDL_PollEvent(&event));
+
+
+			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ DYNAMIC STRINGS
+			
+			//For displaying xPos
+			SDL_Color colorBlack = {0,0,0};
+			SDL_Surface *text_surface = TTF_RenderText_Solid(font, str(position_x).c_str(),colorBlack);
+			SDL_Texture *tex_place = SDL_CreateTextureFromSurface(ren, text_surface);
+			SDL_FreeSurface(text_surface);
+			
+			//For display menuBar_y
+			SDL_Color colorSomething = {45,1,200};
+			text_surface = TTF_RenderText_Solid(font, str(menuBar_y).c_str(), colorSomething);
+			SDL_Texture *tex_menuBar_y = SDL_CreateTextureFromSurface(ren, text_surface);
+			SDL_FreeSurface(text_surface);
+			
+		
+			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ DYNAMIC STRINGS
+			
+			
+			
+			
+			
+			
+			//Logic end and then move where it should be moved
+			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Game logic after input
+			if(menuPosition < 1)
+				menuPosition = 1;
+			if(menuPosition > 3)
+				menuPosition =3;
+			if(menuPosition == 1)
+				menuBar_y = 281;
+			else if (menuPosition == 2)
+				menuBar_y = 522;
+			else if (menuPosition == 3)
+				menuBar_y = 789;
+				
+			textPos_x++;
+			
+			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ game logic after input
+		if (animate)
+		{
+			// After updating animation stuffs, mark that we're ready for a redraw
+			
+			redraw = true;
+			animate = false;
+		}
+
+		if (redraw)
+		{
+			SDL_RenderClear(ren);
+			SDL_RenderCopy(ren, tex, NULL, NULL);
+			
+			// Load menu select bar and specify its position
+			SDL_Rect dst;
+			dst.x = position_x;
+			dst.y = menuBar_y;
+			
+			SDL_QueryTexture(tex_menuSelectBar, NULL, NULL, &dst.w, &dst.h);
+			SDL_RenderCopyEx(ren, tex_menuSelectBar, NULL, &dst, 0, NULL, SDL_FLIP_NONE);
+			
+			//Text loading example
+			dst.x = 32;
+			SDL_QueryTexture(tex_text, NULL, NULL, &dst.w, &dst.h);
+			SDL_RenderCopy(ren, tex_text, NULL, &dst);
+			
+			//X and Y display
+			dst.x = 499;
+			dst.y = 500;
+			SDL_QueryTexture(tex_text, NULL, NULL, &dst.w, &dst.h);
+			SDL_RenderCopy(ren, tex_place, NULL, &dst);
+			
+			// Y display
+			dst.x = textPos_x;
+			dst.y = 500;
+			SDL_RenderCopy(ren, tex_menuBar_y, NULL, &dst);
+			
+			SDL_RenderPresent(ren);
+			redraw = false;
+		}
+		}
+		
+	
 	}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Break and close things down
 	SDL_RemoveTimer(tickTimerID);
 	TTF_CloseFont(font);
 	TTF_Quit();
@@ -312,3 +530,4 @@ static Uint32 tickTimerCallback(Uint32 interval, void *param)
 		return fmod(180 * atanf(y/x) / M_PI + (x > 0 ? 0 : 180) + 360, 360);
 }
 * /*/
+

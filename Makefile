@@ -8,7 +8,7 @@ LIBS = $$(pkg-config --libs $(SDL2_PKG))
 MY_CXXFLAGS = -Wall $$(pkg-config --cflags $(SDL2_PKG))
 EXEEXT = .exe
 OBJ = main.o
-RASTERS = pakman.png Angry_Chase.png menuSelectBar.png
+RASTERS = pakman.png Angry_Chase.png menuSelectBar.png Map.png
 
 MY_GIMP = $${GIMP-gimp}
 
