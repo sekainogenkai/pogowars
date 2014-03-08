@@ -101,21 +101,8 @@ int main(int argc, char *argv[])
 	
     //Loading a png image. Loads the image and output Unable to load if not able to load 
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Load images
-    SDL_Texture *tex = loadTexture(ren, "Angry_Chase.png");
-    if (!tex)
-    {
-		std::cerr << "Unable to load Angry_Chase.png" << std::endl;
-		return 1;
-	}
-	
-	
+    SDL_Texture *tex = loadTexture(ren, "Angry_Chase_.png");
 	SDL_Texture *tex_menuSelectBar = loadTexture(ren, "menuSelectBar.png");
-	if(!tex_menuSelectBar)
-	{
-		std::cerr << "Unable to load menu SelectBar.png" <<std::endl;
-		return 1;
-	}
-	
 	
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ Load images
 
@@ -458,12 +445,7 @@ int main(int argc, char *argv[])
 			}
 		}
 	
-std::cerr << menuBar_y << ":" << quit << std::endl;
-		
-
 	
-	
-
 
 
 
@@ -485,6 +467,7 @@ static SDL_Texture *loadTexture(SDL_Renderer *ren, const char *filename)
     if (!bmp)
     {
              std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
+             abort();
              return NULL;
     }
     
@@ -493,6 +476,7 @@ static SDL_Texture *loadTexture(SDL_Renderer *ren, const char *filename)
     if (!tex)
     {
              std::cout << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+             abort();
              return NULL;
     }
     return tex;
