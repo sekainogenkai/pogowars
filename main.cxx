@@ -13,16 +13,13 @@ extern "C" {
 #include <SDL_ttf.h>
 }
 
-
 #include "game_mode.hxx"
 #include "menu_game_mode.hxx"
 #include "main.hxx"
+#include "one_player_game_mode.hxx"
 
 
 static Uint32 tickTimerCallback(Uint32 interval, void *param);
-//static double cart2angle(double x, double y);
-
-
 
 int main(int argc, char *argv[])
 {
@@ -79,19 +76,6 @@ int main(int argc, char *argv[])
 		    }
 	    }
     }
-    
-    
-    
-    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Make writing
-    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ make writing
-	
-    //Loading a png image. Loads the image and output Unable to load if not able to load 
-    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Load images
-
-	SDL_Texture *tex_map = loadTexture(ren, "Map.png");
-	SDL_Texture *tex_playerOne = loadTexture(ren, "playerOne.png");
-	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ Load images
-
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Setting timer
 	// Set up a user event for detecting timer events.
@@ -108,9 +92,6 @@ int main(int argc, char *argv[])
 	}
 	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ Setting timer
 	
-	
-	
-	
 	//Start the things needed to run the game
 	bool quit = false;
 	SDL_Event event;
@@ -118,6 +99,7 @@ int main(int argc, char *argv[])
 	
 	game_mode *game_modes[] = {
 		new menu_game_mode(ren),
+		new one_player_game_mode(ren),
 	};
 	int current_game_mode = 0;
 
@@ -126,14 +108,15 @@ int main(int argc, char *argv[])
 		//Set up needed variables
 		bool animate = true;
 		bool redraw = true;
-		bool menu = true;
 		
-		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ IN MENU LOOP
-		while(menu && SDL_WaitEvent(&event) && !quit){
+		while(SDL_WaitEvent(&event) && !quit){
 			do
 			{
 				// call mode-specific event handler
+				int old_current_game_mode = current_game_mode;
 				game_modes[current_game_mode]->processEvents(&event, &current_game_mode);
+				if (old_current_game_mode != current_game_mode)
+					redraw = true;
 				// run generic event handlers
 				switch (event.type)
 				{
@@ -158,7 +141,6 @@ int main(int argc, char *argv[])
 					{
 					case SDLK_ESCAPE:
 						quit = true;
-						menu = false;
 						break;
 					}
 					break;
@@ -171,12 +153,6 @@ int main(int argc, char *argv[])
 				// Eat all of the other events while we're at it.
 			} while (SDL_PollEvent(&event));
 
-			//Logic end and then move where it should be moved
-			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Game logic after input
-		
-			
-			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ /end/ game logic after input
-			
 			
 			if (animate)
 			{
@@ -203,10 +179,6 @@ int main(int argc, char *argv[])
 		delete game_modes[i];
 	}
 	// Cleanup	
-   
-	SDL_DestroyTexture(tex_map);
-	SDL_DestroyTexture(tex_playerOne);
-	
 	SDL_RemoveTimer(tickTimerID);
 	TTF_CloseFont(font);
 	TTF_Quit();
@@ -250,13 +222,5 @@ static Uint32 tickTimerCallback(Uint32 interval, void *param)
 	return interval;
 }
 
-// returns degrees
-/*/static double cart2angle(double x, double y)
-{
-	if (fabs(y) < 0.0001 && fabs(y) > 0.01)
-		return y > 0 ? 90 : 270;
-	else
-		return fmod(180 * atanf(y/x) / M_PI + (x > 0 ? 0 : 180) + 360, 360);
-}
-* /*/
+
 
