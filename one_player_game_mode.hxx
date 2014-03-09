@@ -23,6 +23,8 @@ private:
 	double velocity_y;
 	double max_speed;
 	double angle;
+	double wallWidth;
+	double radius;
 	SDL_Texture *tex_map;
 	SDL_Texture *tex_playerOne;
 	bool left, right, up, down;
