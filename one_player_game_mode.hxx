@@ -7,6 +7,22 @@ extern "C" {
 
 #include "game_mode.hxx"
 
+class circle {
+public:
+	double position_x;
+	double position_y;
+	double velocity_x;
+	double velocity_y;
+	double radius;
+	double max_speed;
+	double angle;
+	
+	SDL_Texture *tex;
+	
+	circle(SDL_Renderer *ren, const char *texfile, double start_x, double start_y, double radius, double max_speed);
+	virtual ~circle();
+};
+
 class one_player_game_mode : public game_mode {
 public:
 	one_player_game_mode(SDL_Renderer *ren);
@@ -17,16 +33,13 @@ public:
 	virtual ~one_player_game_mode();
 
 private:
-	double position_x;
-	double position_y;
-	double velocity_x;
-	double velocity_y;
-	double max_speed;
-	double angle;
+	circle player;
+	circle anger;
+	circle fear;
 	double wallWidth;
-	double radius;
+	double fearAccelerationRatio;
+	double angerAccelerationRatio;
 	SDL_Texture *tex_map;
-	SDL_Texture *tex_playerOne;
 	bool left, right, up, down;
 };
 

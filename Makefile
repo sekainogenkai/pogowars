@@ -13,7 +13,9 @@ RASTERS = \
 	Angry_Chase.png \
 	menuSelectBar.png \
 	Map.png \
-	playerOne.png
+	playerOne.png \
+	fear.png \
+	anger.png
 
 MY_GIMP = $${GIMP-gimp}
 
