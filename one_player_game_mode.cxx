@@ -22,6 +22,8 @@ double *fear_velocity_x, double *fear_velocity_y, double angerAccelerationRatio,
 
 static bool circleCollisionDetection(double first_x, double first_y, double second_x, double second__y, double firstRadius, double secondRadius);
 
+static void playerMakesRandomSeed(circle *player, circle *fear, double randomPlayerSeedStrength);
+
 circle::circle(SDL_Renderer *ren, const char *texfile, double start_x, double start_y, double radius, double max_speed){
 	
 	position_x = start_x;
@@ -39,12 +41,13 @@ circle::~circle(){
 
 one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 : player(ren, "playerOne.png", 1920*.5, 1080*.5, 37, 10)
-, anger(ren, "anger.png", 1920*.25, 1080*.25, 37, 24)
-, fear(ren, "fear.png", 1920*.75, 1080*.75, 37, 19)
+, anger(ren, "anger.png", 1920*.25, 1080*.25, 37, 20)
+, fear(ren, "fear.png", 1920*.75, 1080*.75, 37, 24)
 {
 	wallWidth = 80;
-	angerAccelerationRatio = 190;
-	fearAccelerationRatio = 170;
+	angerAccelerationRatio = 170;
+	fearAccelerationRatio = 190;
+	playerSeedStrength = .01;
 	
 	tex_map = loadTexture(ren, "Map.png");
 	left = right = up = down = false;
@@ -134,6 +137,9 @@ void one_player_game_mode::animate(){
 	if(playerHitAnger){
 		
 	}
+	
+	//Player random seed
+	playerMakesRandomSeed(&player, &fear, playerSeedStrength);
 	
 	//Final circle logic
 	//Final player
@@ -230,6 +236,18 @@ static void circleLogicCombined(double *position_x, double *position_y, double *
 	*position_y += *velocity_y;
 }
 
+//How to use the circle class in a function to get the needed variables instead of getting each on when you call the function
+/*/
+static void f(circle *anger, circle *fear)
+{
+	if (anger->position_x < 2)
+		fear->position_y = 20;
+		* 
+}
+* 	fear->position_x;
+* is the same as 
+	(*fear).position_x;
+* /*/
 
 static void angerChaseFear(double anger_x, double anger_y, double fear_x, double fear_y, double *anger_velocity_x, double *anger_velocity_y, 
 double *fear_velocity_x, double *fear_velocity_y, double angerAccelerationRatio, double fearAccelerationRatio){
@@ -252,7 +270,17 @@ double *fear_velocity_x, double *fear_velocity_y, double angerAccelerationRatio,
 	*anger_velocity_y += angerAcceleration_y;
 	*fear_velocity_x += fearAcceleration_x;
 	*fear_velocity_y += fearAcceleration_y;
+}
+
+static void playerMakesRandomSeed(circle *player, circle *fear, double randomPlayerSeedStrength){
 	
+	double x_distance =  player->position_x - fear->position_x;
+	double y_distance =  player->position_y - fear->position_y;
+	double angle = cart2angle(x_distance, y_distance);
+	double fearAcceleration_x = cos(angle/180*M_PI) * randomPlayerSeedStrength;
+	double fearAcceleration_y = sin(angle/180*M_PI) * randomPlayerSeedStrength;
+	fear->velocity_x += fearAcceleration_x;
+	fear->velocity_y += fearAcceleration_y;
 }
 
 static bool circleCollisionDetection(double first_x, double first_y, double second_x, double second_y, double firstRadius, double secondRadius){

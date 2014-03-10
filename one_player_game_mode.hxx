@@ -39,6 +39,7 @@ private:
 	double wallWidth;
 	double fearAccelerationRatio;
 	double angerAccelerationRatio;
+	double playerSeedStrength;
 	SDL_Texture *tex_map;
 	bool left, right, up, down;
 };
