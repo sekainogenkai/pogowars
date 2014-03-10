@@ -20,6 +20,8 @@ static void circleLogicCombined(double *position_x, double *position_y, double *
 static void angerChaseFear(double anger_x, double anger_y, double fear_x, double fear_y, double *anger_velocity_x, double *anger_velocity_y, 
 double *fear_velocity_x, double *fear_velocity_y, double angerAccelerationRatio, double fearAccelerationRatio);
 
+static bool circleCollisionDetection(double first_x, double first_y, double second_x, double second__y, double firstRadius, double secondRadius);
+
 circle::circle(SDL_Renderer *ren, const char *texfile, double start_x, double start_y, double radius, double max_speed){
 	
 	position_x = start_x;
@@ -37,14 +39,12 @@ circle::~circle(){
 
 one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 : player(ren, "playerOne.png", 1920*.5, 1080*.5, 37, 10)
-, anger(ren, "anger.png", 1920*.25, 1080*.25, 37, 10)
-, fear(ren, "fear.png", 1920*.75, 1080*.75, 37, 10)
+, anger(ren, "anger.png", 1920*.25, 1080*.25, 37, 24)
+, fear(ren, "fear.png", 1920*.75, 1080*.75, 37, 19)
 {
 	wallWidth = 80;
-	angerMaxSpeed = 10;
-	fearMaxSpeed = 8;
-	angerAccelerationRatio = 6;
-	fearAccelerationRatio = 6;
+	angerAccelerationRatio = 190;
+	fearAccelerationRatio = 170;
 	
 	tex_map = loadTexture(ren, "Map.png");
 	left = right = up = down = false;
@@ -127,7 +127,14 @@ void one_player_game_mode::animate(){
 	angerChaseFear(anger.position_x, anger.position_y, fear.position_x,fear.position_y, &anger.velocity_x, &anger.velocity_y, 
 	&fear.velocity_x, &fear.velocity_y, angerAccelerationRatio, fearAccelerationRatio);
 	  
-	  
+	//Collision detection
+	bool playerHitAnger = circleCollisionDetection(player.position_x, player.position_y, anger.position_x, anger.position_y, player.radius, anger.radius);
+	bool playerHitFear = circleCollisionDetection(player.position_x, player.position_y, fear.position_x, fear.position_y, player.radius, fear.radius);
+	
+	if(playerHitAnger){
+		
+	}
+	
 	//Final circle logic
 	//Final player
 	circleLogicCombined(&player.position_x, &player.position_y, &player.velocity_x, &player.velocity_y, player.radius, wallWidth, &player.angle, player.max_speed);
@@ -247,4 +254,18 @@ double *fear_velocity_x, double *fear_velocity_y, double angerAccelerationRatio,
 	*fear_velocity_y += fearAcceleration_y;
 	
 }
+
+static bool circleCollisionDetection(double first_x, double first_y, double second_x, double second_y, double firstRadius, double secondRadius){
+	
+	double x_distance = second_x - first_x;
+	double y_distance = second_y - first_y;
+	double firstToSecondDistance = sqrt(pow(x_distance, 2) + pow(y_distance, 2));
+	double radiusCombined = firstRadius + secondRadius;
+	if(firstToSecondDistance <= radiusCombined)
+		return true;
+	else
+		return false;
+}
+	
+
 
