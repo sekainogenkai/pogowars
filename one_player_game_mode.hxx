@@ -36,11 +36,13 @@ private:
 	circle player;
 	circle anger;
 	circle fear;
+	circle yinAndYangCircle;
 	double wallWidth;
 	double fearAccelerationRatio;
 	double angerAccelerationRatio;
 	double playerSeedStrength;
 	SDL_Texture *tex_map;
+	SDL_Texture *tex_wall;
 	bool left, right, up, down;
 };
 

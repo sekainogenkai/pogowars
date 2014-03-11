@@ -15,7 +15,10 @@ RASTERS = \
 	Map.png \
 	playerOne.png \
 	fear.png \
-	anger.png
+	anger.png \
+	yinAndYang.png \
+	Wall.png
+	
 
 MY_GIMP = $${GIMP-gimp}
 
