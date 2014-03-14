@@ -16,7 +16,18 @@ public:
 	double radius;
 	double max_speed;
 	double angle;
-	
+	//Vector speed function inside circle class to make it easier to get the vector
+	double vectorSpeed (void) {
+		return sqrt (pow(velocity_x, 2) + pow(velocity_y,2)); 
+		};
+	double vectorAngle (void) {
+		double x = velocity_x;
+		double y = velocity_y;
+		if (fabs(x) < 0.0001)
+		return y > 0 ? 90 : 270;
+	else
+		return fmod(180 * atanf(y/x) / M_PI + (x > 0 ? 0 : 180) + 360, 360);
+	};
 	SDL_Texture *tex;
 	
 	circle(SDL_Renderer *ren, const char *texfile, double start_x, double start_y, double radius, double max_speed);
@@ -41,6 +52,7 @@ private:
 	double fearAccelerationRatio;
 	double angerAccelerationRatio;
 	double playerSeedStrength;
+	double playerAcceleration;
 	SDL_Texture *tex_map;
 	SDL_Texture *tex_wall;
 	bool left, right, up, down;

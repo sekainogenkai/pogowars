@@ -8,6 +8,9 @@ menu_game_mode::menu_game_mode(SDL_Renderer *ren){
 	textPos_x = 0;
 	tex = loadTexture(ren, "Angry_Chase.png");
 	tex_menuSelectBar = loadTexture(ren, "menuSelectBar.png");
+	tex_yinAndYang = loadTexture(ren, "yinAndYang.png");
+	tex_menuBack = loadTexture(ren, "menuBack.png");
+	yinAndYangAngle = 10;
 }
 
 bool menu_game_mode::processEvents(SDL_Event *event, int *current_game_mode){
@@ -53,9 +56,31 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	else if (menuPosition == 3)
 		menuBar_y = 789;
 
-	SDL_RenderCopy(ren, tex, NULL, NULL);
-	// Load menu select bar and specify its position
+	if(yinAndYangAngle < menuBar_y -1)
+	{
+		yinAndYangAngle += 2;
+		}else if(yinAndYangAngle > menuBar_y +1)
+		{
+			yinAndYangAngle -= 2;
+		}
+	
+	
 	SDL_Rect dst;
+	
+	
+	SDL_RenderCopy(ren, tex_menuBack, NULL, NULL);
+	
+	//Yin and yang
+	dst.x = dst.y = 0;
+	
+	dst.w = dst.h = 2 * yinAndYangAngle + 400;
+	SDL_RenderCopyEx(ren, tex_yinAndYang, NULL, &dst, yinAndYangAngle, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(ren, tex_yinAndYang, NULL, &dst, yinAndYangAngle, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(ren, tex_yinAndYang, NULL, &dst, yinAndYangAngle, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(ren, tex_yinAndYang, NULL, &dst, yinAndYangAngle, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(ren, tex_yinAndYang, NULL, &dst, yinAndYangAngle, NULL, SDL_FLIP_NONE);
+	// Load menu select bar and specify its position
+	
 	dst.x = position_x;
 	dst.y = menuBar_y;
 	
@@ -84,9 +109,13 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	SDL_RenderCopy(ren, tex_menuBar_y, NULL, &dst);
 	SDL_DestroyTexture(tex_menuBar_y);
 	
+	
+	
+	SDL_RenderCopy(ren, tex, NULL, NULL);
 }
 
 menu_game_mode::~menu_game_mode(){
 	SDL_DestroyTexture(tex);
 	SDL_DestroyTexture(tex_menuSelectBar);
+	SDL_DestroyTexture(tex_yinAndYang);
 }

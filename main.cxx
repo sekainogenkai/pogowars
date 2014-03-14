@@ -103,6 +103,7 @@ int main(int argc, char *argv[])
 	};
 	int current_game_mode = 0;
 
+
     while (!quit)
     {
 		//Set up needed variables

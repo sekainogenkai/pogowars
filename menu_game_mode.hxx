@@ -21,6 +21,9 @@ private:
 	int textPos_x;
 	SDL_Texture *tex;
 	SDL_Texture *tex_menuSelectBar;
+	SDL_Texture *tex_yinAndYang;
+	SDL_Texture *tex_menuBack;
+	int yinAndYangAngle;
 };
 
 #endif /* _TESTSDL_MENU_GAME_MODE_HXX */
