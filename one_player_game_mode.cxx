@@ -42,7 +42,8 @@ circle::~circle() {
 
 textured_circle::textured_circle(SDL_Renderer *ren, const char *texfile, double start_x, double start_y, double radius, double max_speed)
 : circle(start_x, start_y, radius, max_speed)
- {
+{
+	this_that_should_kill_tex = this;
 	tex = loadTexture(ren, texfile);
 }
 
@@ -56,17 +57,19 @@ void textured_circle::render(SDL_Renderer *ren) {
 }
 
 textured_circle::~textured_circle() {
-	// HACK: avoid double-free (the wrong way).
+	// HACK: avoid double-free (the wrong way) by checking that we were actually the object that called loadTexture() using the stored this token which gets copied with the automatically-implemented shallow copy.
 	if (this_that_should_kill_tex == (void*)this)
+	/*{std::cerr << "destrolying thing " << ((size_t)tex) << " because I am " << ((size_t)(void*)this) << std::endl;*/
 		SDL_DestroyTexture(tex);
+		/*} else std::cerr << "not destryojing thing " << ((size_t)tex) << " because I am " << ((size_t)(void*)this) << " instead of " << ((size_t)this_that_should_kill_tex) << std::endl;*/
 }
 
 one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 : defaultPlayer(ren, "playerOne.png", 1920*.5, 1080*.5, 100, 15)   //The radius which is the second to last variable taken should normally be 37
 , player(defaultPlayer)
-, defaultAnger(ren, "anger.png", 1920*.25, 1080*.25, 10, 20)
+, defaultAnger(ren, "anger.png", 1920*.25, 1080*.25, 37, 20)
 , anger(defaultAnger)
-, defaultFear(ren, "fear.png", 1920*.75, 1080*.75, 10, 24)
+, defaultFear(ren, "fear.png", 1920*.75, 1080*.75, 37, 24)
 , fear(defaultFear)
 , yinAndYangCircle(ren, "yinAndYang.png", 1920/2, 1080/2, 1920/2, 0)
 
@@ -192,7 +195,7 @@ void one_player_game_mode::animate(){
 	{
 		player.radius --;
 	}
-	if (player.radius < 16)
+	if (player.radius < 32)
 		showScore = true;
 
 	//Player random seed
