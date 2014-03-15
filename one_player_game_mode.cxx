@@ -10,15 +10,13 @@ extern "C" {
 #include "one_player_game_mode.hxx"
 #include "main.hxx"
 
-static void vectorSpeedConstant(double *velocity_x, double *velocity_y, double max_vector_speed);
+static void vectorSpeedConstant(circle *circ);
 static double cart2angle(double x, double y);
-static void wallHit (double *position_x, double *position_y, double *velocity_x, double *velocity_y, double radius, double wallWidth);
+static void wallHit (circle *circ, double wallWidth);
 //Combined circle logic
-static void circleLogicCombined(double *position_x, double *position_y, double *velocity_x
-, double *velocity_y, double radius, double wallWidth, double *angle, double max_speed);
+static void circleLogicCombined(circle *circ , double wallWidth);
 
-static void angerChaseFear(double anger_x, double anger_y, double fear_x, double fear_y, double *anger_velocity_x, double *anger_velocity_y, 
-double *fear_velocity_x, double *fear_velocity_y, double angerAccelerationRatio, double fearAccelerationRatio);
+static void angerChaseFear(circle *anger, circle *fear, double angerAccelerationRatio, double fearAccelerationRatio);
 
 //static void circleCollisionDetection(circle *circleOne, circle *circleTwo);
 
@@ -26,6 +24,9 @@ static void playerMakesRandomSeed(circle *player, circle *fear, double randomPla
 
 static void yinAndYangCircleLogic(circle *anger, circle *fear, circle *yinAndYangCircleLogic);
 
+static void circleCollisionDetection(circle *circleOne, circle *circleTwo, bool collidePhysics);
+
+static void circleCollisionResponse(circle *circleOne, circle *circleTwo);
 
 circle::circle(SDL_Renderer *ren, const char *texfile, double start_x, double start_y, double radius, double max_speed){
 	
@@ -43,9 +44,9 @@ circle::~circle(){
 }
 
 one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
-: player(ren, "playerOne.png", 1920*.5, 1080*.5, 37, 15)
-, anger(ren, "anger.png", 1920*.25, 1080*.25, 37, 20)
-, fear(ren, "fear.png", 1920*.75, 1080*.75, 37, 24)
+: player(ren, "playerOne.png", 1920*.5, 1080*.5, 100, 15)   //The radius which is the second to last variable taken should normally be 37
+, anger(ren, "anger.png", 1920*.25, 1080*.25, 100, 20)
+, fear(ren, "fear.png", 1920*.75, 1080*.75, 100, 24)
 , yinAndYangCircle(ren, "yinAndYang.png", 1920/2, 1080/2, 1920/2, 0)
 
 {
@@ -134,15 +135,16 @@ void one_player_game_mode::animate(){
 			player.velocity_x = 0;
 	}
 	
-	//After player input logic
+	//+++++++++++++++++++++++After player input logic
 	  
 	
 	//Anger circle chases fear circle and fear circle runs away from anger ball
-	angerChaseFear(anger.position_x, anger.position_y, fear.position_x,fear.position_y, &anger.velocity_x, &anger.velocity_y, 
-	&fear.velocity_x, &fear.velocity_y, angerAccelerationRatio, fearAccelerationRatio);
+	angerChaseFear(&anger, &fear, angerAccelerationRatio, fearAccelerationRatio);
 	  
 	//Collision detection
-	
+	circleCollisionDetection(&fear, &anger, true);
+	circleCollisionDetection(&player, &anger, true);
+	circleCollisionDetection(&player, &fear, true);
 	
 	
 	//Player random seed
@@ -150,11 +152,11 @@ void one_player_game_mode::animate(){
 	
 	//Final circle logic
 	//Final player
-	circleLogicCombined(&player.position_x, &player.position_y, &player.velocity_x, &player.velocity_y, player.radius, wallWidth, &player.angle, player.max_speed);
+	circleLogicCombined(&player, wallWidth);
 	//Final anger
-	circleLogicCombined(&anger.position_x, &anger.position_y, &anger.velocity_x, &anger.velocity_y, anger.radius, wallWidth, &anger.angle, anger.max_speed);
+	circleLogicCombined(&anger, wallWidth);
 	//Final fear
-	circleLogicCombined(&fear.position_x, &fear.position_y, &fear.velocity_x, &fear.velocity_y, fear.radius, wallWidth, &fear.angle, fear.max_speed);
+	circleLogicCombined(&fear, wallWidth);
 	
 	//Yin and yang circle logic
 	yinAndYangCircleLogic(&anger, &fear, &yinAndYangCircle);
@@ -191,6 +193,8 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	dst.x = anger.position_x - anger.radius;
 	dst.y = anger.position_y - anger.radius;
 	SDL_QueryTexture(anger.tex, NULL, NULL, &dst.w, &dst.h);
+	
+	dst.w = dst.h = 2*anger.radius;
 	SDL_RenderCopyEx(ren, anger.tex, NULL, &dst, anger.angle, NULL, SDL_FLIP_NONE);
 	
 	
@@ -198,6 +202,8 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	dst.x = fear.position_x - fear.radius;
 	dst.y = fear.position_y - fear.radius;
 	SDL_QueryTexture(fear.tex, NULL, NULL, &dst.w, &dst.h);
+	
+	dst.w = dst.h = 2*fear.radius;
 	SDL_RenderCopyEx(ren, fear.tex, NULL, &dst, fear.angle, NULL, SDL_FLIP_NONE);
 	
 	SDL_RenderCopy(ren, tex_wall, NULL, NULL);
@@ -208,13 +214,18 @@ one_player_game_mode::~one_player_game_mode(){
 	SDL_DestroyTexture(tex_wall);
 }
 
-static void vectorSpeedConstant(double *velocity_x, double *velocity_y, double max_vector_speed)
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Functions
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ FUNCTIONS
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ I SAID FUNCTIONS YOU  YOU YOU
+
+
+static void vectorSpeedConstant(circle *circ)
 {
 	
-	double ratio = max_vector_speed/sqrt((*velocity_x)*(*velocity_x) + (*velocity_y) * (*velocity_y));
+	double ratio = circ->max_speed/circ->vectorSpeed();
 	if(ratio < 1){
-		*velocity_x *= ratio;
-		*velocity_y *= ratio;
+		circ->velocity_x *= ratio;
+		circ->velocity_y *= ratio;
 	}
 }
 
@@ -226,63 +237,50 @@ static double cart2angle(double x, double y)
 		return fmod(180 * atanf(y/x) / M_PI + (x > 0 ? 0 : 180) + 360, 360);
 }
 
-static void wallHit (double *position_x, double *position_y, double *velocity_x, double *velocity_y, double radius, double wallWidth)
+static void wallHit (circle *circ, double wallWidth)
 {
 	//left wall hit
-	if(*position_x - radius < wallWidth){
-		*position_x = wallWidth + radius;
-		*velocity_x = fabs(*velocity_x);
+	if(circ->position_x - circ->radius < wallWidth){
+		circ->position_x = wallWidth + circ->radius;
+		circ->velocity_x = fabs(circ->velocity_x);
 	}
 	//right wall hit
-	if(*position_x + radius > 1920 - wallWidth){
-		*position_x = 1920 - (wallWidth + radius);
-		*velocity_x = -fabs(*velocity_x);
+	if(circ->position_x + circ->radius > 1920 - wallWidth){
+		circ->position_x = 1920 - (wallWidth + circ->radius);
+		circ->velocity_x = -fabs(circ->velocity_x);
 	}
 	//top wall hit
-	if(*position_y - radius < wallWidth){
-		*position_y = wallWidth + radius;
-		*velocity_y = fabs(*velocity_y);
+	if(circ->position_y - circ->radius < wallWidth){
+		circ->position_y = wallWidth + circ->radius;
+		circ->velocity_y = fabs(circ->velocity_y);
 	}
 	//bottom wall hit
-	if(*position_y + radius > 1080 - wallWidth){
-		*velocity_y = - fabs(*velocity_y);
-		*position_y = 1080 - (wallWidth + radius);
+	if(circ->position_y + circ->radius > 1080 - wallWidth){
+		circ->velocity_y = - fabs(circ->velocity_y);
+		circ->position_y = 1080 - (wallWidth + circ->radius);
 	}
 }
 
 //Combine all the simple circle logic into this
-static void circleLogicCombined(double *position_x, double *position_y, double *velocity_x
-, double *velocity_y, double radius, double wallWidth, double *angle, double max_speed){
+static void circleLogicCombined(circle *circ, double wallWidth){
 	
-	vectorSpeedConstant(&*velocity_x, &*velocity_y, max_speed);
-	if (fabs(*velocity_x) > 0.25 || fabs(*velocity_y) > 0.25)
-		*angle = cart2angle(*velocity_x, *velocity_y);
-	wallHit(&*position_x, &*position_y, &*velocity_x, &*velocity_y, radius, wallWidth);
+	vectorSpeedConstant(circ);
+	if (fabs(circ->velocity_x) > 0.25 || fabs(circ->velocity_y) > 0.25)
+		circ->angle = cart2angle(circ->velocity_x, circ->velocity_y);
+	wallHit(circ , wallWidth);
 	
-	*position_x += *velocity_x;
-	*position_y += *velocity_y;
+	circ->position_x += circ->velocity_x;
+	circ->position_y += circ->velocity_y;
 }
 
-//How to use the circle class in a function to get the needed variables instead of getting each on when you call the function
-/*/
-static void f(circle *anger, circle *fear)
-{
-	if (anger->position_x < 2)
-		fear->position_y = 20;
-		* 
-}
-* 	fear->position_x;
-* is the same as 
-	(*fear).position_x;
-* /*/
+
 
 //Maybe later on make this take up less room now that I know how to do it
-static void angerChaseFear(double anger_x, double anger_y, double fear_x, double fear_y, double *anger_velocity_x, double *anger_velocity_y, 
-double *fear_velocity_x, double *fear_velocity_y, double angerAccelerationRatio, double fearAccelerationRatio){
+static void angerChaseFear(circle *anger, circle *fear, double angerAccelerationRatio, double fearAccelerationRatio){
 	
 	//Pretty simple just read the variables to know what is happening here
-	double x_distance = fear_x - anger_x;
-	double y_distance = fear_y - anger_y;
+	double x_distance = fear->position_x - anger->position_x;
+	double y_distance = fear->position_y - anger->position_y;
 	
 	double angerToFearAngle = cart2angle(x_distance, y_distance);
 	double angerToFearDistance = sqrt(pow(x_distance, 2) + pow(y_distance,2));
@@ -295,10 +293,10 @@ double *fear_velocity_x, double *fear_velocity_y, double angerAccelerationRatio,
 	double fearAcceleration_x = cos(angerToFearAngle/180*M_PI) * fearAcceleration;
 	double fearAcceleration_y = sin(angerToFearAngle/180*M_PI) * fearAcceleration;
 	
-	*anger_velocity_x += angerAcceleration_x;
-	*anger_velocity_y += angerAcceleration_y;
-	*fear_velocity_x += fearAcceleration_x;
-	*fear_velocity_y += fearAcceleration_y;
+	anger->velocity_x += angerAcceleration_x;
+	anger->velocity_y += angerAcceleration_y;
+	fear->velocity_x += fearAcceleration_x;
+	fear->velocity_y += fearAcceleration_y;
 	
 }
 
@@ -313,26 +311,40 @@ static void playerMakesRandomSeed(circle *player, circle *fear, double randomPla
 	fear->velocity_y += fearAcceleration_y;
 }
 
-/*/
-static void circleCollisionDetection(circle *circleOne, circle *circleTwo){
+
+static void circleCollisionDetection(circle *circleOne, circle *circleTwo, bool collidePhysics){
 	
 	double x_distance = circleTwo->position_x - circleOne->position_x;
 	double y_distance = circleTwo->position_y - circleOne->position_y;
 	double firstToSecondDistance = sqrt(pow(x_distance, 2) + pow(y_distance, 2));
 	double radiusCombined = circleOne->radius + circleTwo->radius;
 	//Circle physics collison response in here using http://en.wikipedia.org/wiki/Elastic_collision at 2 and three-dimensional
-	if(firstToSecondDistance <= radiusCombined){
-		circleCollisionResponse(&circleOne, &circleTwo);
-		circleCollisionResponse(&circleOne, &circleTwo);
+	if(firstToSecondDistance <= radiusCombined && collidePhysics){
+		circleCollisionResponse(circleOne, circleTwo);
+		circleCollisionResponse(circleTwo, circleOne);
 	}
 }
 
 static void circleCollisionResponse(circle *circleOne, circle *circleTwo){
-	double v1 = hypotenuse(circleOne);
-	double v2 = hypotenuse(circleTwo);
-	double angle1 = hypotenuse(circleOne.velocity_x,
 	
-}/*/
+	//Setting up variables to put into the weird equation found from wikipedia at http://en.wikipedia.org/wiki/Elastic_collision at 2 and three-dimensional
+	double v1 = circleOne->vectorSpeed();
+	double v2 = circleTwo->vectorSpeed();
+	double o1 = circleOne->vectorAngle();
+	double o2 = circleTwo->vectorAngle();
+	double m1 = pow(circleOne->radius, 2) *M_PI;
+	double m2 = pow(circleTwo->radius, 2) *M_PI;
+	double middleAngles = cart2angle((circleTwo->position_x - circleOne->position_x) , (circleTwo->position_y - circleOne->position_y));
+	
+	double topPart = v1 * cos(o1/180*M_PI) * (m1-m2) + 2*m2*v2 * cos((o2 - middleAngles)/180*M_PI);
+	double bottomPart = m1 + m2;
+	double sidePartForX = cos(middleAngles/180*M_PI) + v1 * sin((o1-middleAngles)/180*M_PI) * cos((middleAngles + M_PI / 2)/180*M_PI);
+	double sidePartForY = sin(middleAngles/180*M_PI) + v1 * sin((o1 - middleAngles)/180*M_PI) * sin((middleAngles + M_PI / 2)/180*M_PI);
+	
+	circleOne->velocity_x = topPart/bottomPart * sidePartForX;
+	circleTwo->velocity_y = topPart/bottomPart * sidePartForY;
+	
+}
 
 
 // Yin and yang circle in the background to follow the yin and yang circles

@@ -19,7 +19,6 @@ RASTERS = \
 	yinAndYang.png \
 	Wall.png \
 	menuBack.png
-	
 
 MY_GIMP = $${GIMP-gimp}
 
