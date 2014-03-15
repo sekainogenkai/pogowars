@@ -24,7 +24,7 @@ static void playerMakesRandomSeed(circle *player, circle *fear, double randomPla
 
 static void yinAndYangCircleLogic(circle *anger, circle *fear, circle *yinAndYangCircleLogic);
 
-static void circleCollisionDetection(circle *circleOne, circle *circleTwo, bool collidePhysics);
+static bool circleCollisionDetection(circle *circleOne, circle *circleTwo, bool collidePhysics);
 
 static void circleCollisionResponse(circle *circleOne, circle *circleTwo);
 
@@ -44,9 +44,12 @@ circle::~circle(){
 }
 
 one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
-: player(ren, "playerOne.png", 1920*.5, 1080*.5, 100, 15)   //The radius which is the second to last variable taken should normally be 37
-, anger(ren, "anger.png", 1920*.25, 1080*.25, 100, 20)
-, fear(ren, "fear.png", 1920*.75, 1080*.75, 100, 24)
+: defaultPlayer(ren, "playerOne.png", 1920*.5, 1080*.5, 100, 15)   //The radius which is the second to last variable taken should normally be 37
+, player(defaultPlayer)
+, defaultAnger(ren, "anger.png", 1920*.25, 1080*.25, 150, 20)
+, anger(defaultAnger)
+, defaultFear(ren, "fear.png", 1920*.75, 1080*.75, 150, 24)
+, fear(defaultFear)
 , yinAndYangCircle(ren, "yinAndYang.png", 1920/2, 1080/2, 1920/2, 0)
 
 {
@@ -63,6 +66,13 @@ one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 
 	
 	left = right = up = down = false;
+}
+
+void one_player_game_mode::clear(){
+	player = defaultPlayer;
+	anger = defaultAnger;
+	fear = defaultFear;
+	showScore = false;
 }
 
 bool one_player_game_mode::processEvents(SDL_Event *event, int *current_game_mode){
@@ -105,6 +115,13 @@ bool one_player_game_mode::processEvents(SDL_Event *event, int *current_game_mod
 		case SDLK_DOWN:
 			down = false;
 			break;
+		case SDLK_RETURN:
+			if (showScore)
+			{
+				*current_game_mode = 0;
+				clear();
+			}
+			break;
 		}
 		break;
 	}
@@ -142,11 +159,24 @@ void one_player_game_mode::animate(){
 	angerChaseFear(&anger, &fear, angerAccelerationRatio, fearAccelerationRatio);
 	  
 	//Collision detection
-	circleCollisionDetection(&fear, &anger, true);
-	circleCollisionDetection(&player, &anger, true);
-	circleCollisionDetection(&player, &fear, true);
-	
-	
+	//Fear and anger
+	if (circleCollisionDetection(&fear, &anger, true))
+	{
+		
+	}
+	//Player and anger
+	if (circleCollisionDetection(&player, &anger, true))
+	{
+		player.radius --;
+	}
+	//Player and fear
+	if (circleCollisionDetection(&player, &fear, true))
+	{
+		player.radius --;
+	}
+	if (player.radius < 16)
+		showScore = true;
+
 	//Player random seed
 	playerMakesRandomSeed(&player, &fear, playerSeedStrength);
 	
@@ -207,6 +237,20 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	SDL_RenderCopyEx(ren, fear.tex, NULL, &dst, fear.angle, NULL, SDL_FLIP_NONE);
 	
 	SDL_RenderCopy(ren, tex_wall, NULL, NULL);
+	
+	//Ending score
+	if (showScore) 
+	{
+		SDL_Color black = {0, 0, 0};
+		SDL_Surface *score_surface = TTF_RenderText_Solid(font, ("Hah, you lose " + str((int)player.radius)).c_str(), black);
+		SDL_Texture *tex_score = SDL_CreateTextureFromSurface(ren, score_surface);
+		SDL_FreeSurface(score_surface);
+		SDL_QueryTexture(tex_score, NULL, NULL, &dst.w, &dst.h);
+		dst.y = (1080 - dst.h)/2;
+		dst.x = (1920 - dst.w)/2;
+		SDL_RenderCopy(ren, tex_score, NULL, &dst);
+		SDL_DestroyTexture(tex_score);
+	}
 }
 
 one_player_game_mode::~one_player_game_mode(){
@@ -312,17 +356,23 @@ static void playerMakesRandomSeed(circle *player, circle *fear, double randomPla
 }
 
 
-static void circleCollisionDetection(circle *circleOne, circle *circleTwo, bool collidePhysics){
+static bool circleCollisionDetection(circle *circleOne, circle *circleTwo, bool collidePhysics){
 	
 	double x_distance = circleTwo->position_x - circleOne->position_x;
 	double y_distance = circleTwo->position_y - circleOne->position_y;
 	double firstToSecondDistance = sqrt(pow(x_distance, 2) + pow(y_distance, 2));
 	double radiusCombined = circleOne->radius + circleTwo->radius;
 	//Circle physics collison response in here using http://en.wikipedia.org/wiki/Elastic_collision at 2 and three-dimensional
-	if(firstToSecondDistance <= radiusCombined && collidePhysics){
+	if(firstToSecondDistance <= radiusCombined){
+		
+		if (collidePhysics)
+		{
 		circleCollisionResponse(circleOne, circleTwo);
 		circleCollisionResponse(circleTwo, circleOne);
+		}
+		return true;
 	}
+	return false;
 }
 
 static void circleCollisionResponse(circle *circleOne, circle *circleTwo){

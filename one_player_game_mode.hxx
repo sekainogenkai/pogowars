@@ -44,9 +44,11 @@ public:
 	virtual ~one_player_game_mode();
 
 private:
-	circle player;
-	circle anger;
-	circle fear;
+	void clear();
+
+	circle defaultPlayer, player;
+	circle defaultAnger, anger;
+	circle defaultFear, fear;
 	circle yinAndYangCircle;
 	double wallWidth;
 	double fearAccelerationRatio;
@@ -56,6 +58,7 @@ private:
 	SDL_Texture *tex_map;
 	SDL_Texture *tex_wall;
 	bool left, right, up, down;
+	bool showScore;
 };
 
 #endif /* _TESTSDL_ONE_PLAYER_GAME_MODE_HXX */
