@@ -30,8 +30,22 @@ public:
 	};
 	SDL_Texture *tex;
 	
-	circle(SDL_Renderer *ren, const char *texfile, double start_x, double start_y, double radius, double max_speed);
+	circle(double start_x, double start_y, double radius, double max_speed);
 	virtual ~circle();
+};
+
+// This subclass of circle handles tracking, rendering, cleaning its own texture.
+class textured_circle : public circle {
+private:
+	void *this_that_should_kill_tex; // HACK
+	SDL_Texture *tex;
+	
+public:
+	textured_circle(SDL_Renderer *ren, const char *texfile, double start_x, double start_y, double radius, double max_speed);
+	
+	void render(SDL_Renderer *ren);
+	
+	virtual ~textured_circle();
 };
 
 class one_player_game_mode : public game_mode {
@@ -46,10 +60,10 @@ public:
 private:
 	void clear();
 
-	circle defaultPlayer, player;
-	circle defaultAnger, anger;
-	circle defaultFear, fear;
-	circle yinAndYangCircle;
+	textured_circle defaultPlayer, player;
+	textured_circle defaultAnger, anger;
+	textured_circle defaultFear, fear;
+	textured_circle yinAndYangCircle;
 	double wallWidth;
 	double fearAccelerationRatio;
 	double angerAccelerationRatio;

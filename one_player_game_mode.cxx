@@ -28,7 +28,7 @@ static bool circleCollisionDetection(circle *circleOne, circle *circleTwo, bool 
 
 static void circleCollisionResponse(circle *circleOne, circle *circleTwo);
 
-circle::circle(SDL_Renderer *ren, const char *texfile, double start_x, double start_y, double radius, double max_speed){
+circle::circle(double start_x, double start_y, double radius, double max_speed){
 	
 	position_x = start_x;
 	position_y = start_y;
@@ -36,19 +36,37 @@ circle::circle(SDL_Renderer *ren, const char *texfile, double start_x, double st
 	velocity_y = 0;
 	this->radius = radius;
 	this->max_speed = max_speed;
+}
+circle::~circle() {
+}
 
+textured_circle::textured_circle(SDL_Renderer *ren, const char *texfile, double start_x, double start_y, double radius, double max_speed)
+: circle(start_x, start_y, radius, max_speed)
+ {
 	tex = loadTexture(ren, texfile);
 }
-circle::~circle(){
-	SDL_DestroyTexture(tex);
+
+void textured_circle::render(SDL_Renderer *ren) {
+	SDL_Rect dst;
+	dst.x = position_x - radius;
+	dst.y = position_y - radius;
+	dst.w = radius*2;
+	dst.h = radius*2;
+	SDL_RenderCopyEx(ren, tex, NULL, &dst, angle, NULL, SDL_FLIP_NONE);
+}
+
+textured_circle::~textured_circle() {
+	// HACK: avoid double-free (the wrong way).
+	if (this_that_should_kill_tex == (void*)this)
+		SDL_DestroyTexture(tex);
 }
 
 one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 : defaultPlayer(ren, "playerOne.png", 1920*.5, 1080*.5, 100, 15)   //The radius which is the second to last variable taken should normally be 37
 , player(defaultPlayer)
-, defaultAnger(ren, "anger.png", 1920*.25, 1080*.25, 150, 20)
+, defaultAnger(ren, "anger.png", 1920*.25, 1080*.25, 10, 20)
 , anger(defaultAnger)
-, defaultFear(ren, "fear.png", 1920*.75, 1080*.75, 150, 24)
+, defaultFear(ren, "fear.png", 1920*.75, 1080*.75, 10, 24)
 , fear(defaultFear)
 , yinAndYangCircle(ren, "yinAndYang.png", 1920/2, 1080/2, 1920/2, 0)
 
@@ -152,7 +170,7 @@ void one_player_game_mode::animate(){
 			player.velocity_x = 0;
 	}
 	
-	//+++++++++++++++++++++++After player input logic
+	//+++++++++++++++++++++++    After player input logic
 	  
 	
 	//Anger circle chases fear circle and fear circle runs away from anger ball
@@ -202,39 +220,17 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	//SDL_Rect src; I will use this when I want to start to animate things
 	
 	//Yin and yang circle RENDER
-	dst.x = yinAndYangCircle.position_x - yinAndYangCircle.radius/2;
-	dst.y = yinAndYangCircle.position_y - yinAndYangCircle.radius/2;
-	SDL_QueryTexture(yinAndYangCircle.tex, NULL, NULL, &dst.w, &dst.h);
-	
-	dst.w = dst.h = yinAndYangCircle.radius;
-	SDL_RenderCopyEx(ren, yinAndYangCircle.tex, NULL, &dst, yinAndYangCircle.angle, NULL, SDL_FLIP_NONE);
-	
+	yinAndYangCircle.render(ren);
+
 	// Player one RENDER
-	
-	dst.x = player.position_x - player.radius;
-	dst.y = player.position_y - player.radius;
-	
-	SDL_QueryTexture(player.tex, NULL, NULL, &dst.w, &dst.h);
-	
-	dst.w = dst.h = 2*player.radius;
-	SDL_RenderCopyEx(ren, player.tex, NULL, &dst, player.angle, NULL, SDL_FLIP_NONE);
+	player.render(ren);
 	
 	// Anger ball renderer RENDER
-	dst.x = anger.position_x - anger.radius;
-	dst.y = anger.position_y - anger.radius;
-	SDL_QueryTexture(anger.tex, NULL, NULL, &dst.w, &dst.h);
-	
-	dst.w = dst.h = 2*anger.radius;
-	SDL_RenderCopyEx(ren, anger.tex, NULL, &dst, anger.angle, NULL, SDL_FLIP_NONE);
+	anger.render(ren);
 	
 	
 	//Fear RENDER
-	dst.x = fear.position_x - fear.radius;
-	dst.y = fear.position_y - fear.radius;
-	SDL_QueryTexture(fear.tex, NULL, NULL, &dst.w, &dst.h);
-	
-	dst.w = dst.h = 2*fear.radius;
-	SDL_RenderCopyEx(ren, fear.tex, NULL, &dst, fear.angle, NULL, SDL_FLIP_NONE);
+	fear.render(ren);
 	
 	SDL_RenderCopy(ren, tex_wall, NULL, NULL);
 	
@@ -405,7 +401,7 @@ static void yinAndYangCircleLogic(circle *anger, circle *fear, circle *yinAndYan
 	yinAndYangCircle->position_y = (anger->position_y + fear->position_y)/2;
 	double x_distance =  anger->position_x - fear->position_x;
 	double y_distance =  anger->position_y - fear->position_y;
-	yinAndYangCircle->radius = ((sqrt(pow(x_distance, 2) + pow(y_distance,2)))/2) * 3.25;
+	yinAndYangCircle->radius = sqrt(pow(x_distance, 2) + pow(y_distance,2));
 	yinAndYangCircle->angle = cart2angle(x_distance, y_distance);
 	
 }
