@@ -85,7 +85,7 @@ one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 
 {
 	wallWidth = 80;
-	angerAccelerationRatio = 170;
+	angerAccelerationRatio = 200;
 	fearAccelerationRatio = 190;
 	playerSeedStrength = .02;
 	playerAcceleration = 1;
@@ -190,7 +190,8 @@ void one_player_game_mode::animate(){
 	angerChaseFear(&anger, &fear, angerAccelerationRatio, fearAccelerationRatio);
 	  
 	//Collision detection
-	//Fear and anger
+	
+	//Fear and anger makes the WATERMELON!!
 	if (circleCollisionDetection(&fear, &anger, true))
 	{
 		for (size_t i = 0; i < ARRAY_LENGTH(watermelons); i++)
@@ -200,11 +201,22 @@ void one_player_game_mode::animate(){
 			watermelons[i].enabled = true;
 			watermelons[i].position_x = (anger.position_x + fear.position_x)/2;
 			watermelons[i].position_y = (anger.position_y + fear.position_y)/2;
-			watermelons[i].radius = 40;
+			watermelons[i].radius = 80;
 			break;
 			}
 		}
 	}
+	for (size_t i = 0; i < ARRAY_LENGTH(watermelons); i++)
+		{
+			if (watermelons[i].enabled)
+			{
+			watermelons[i].radius -= .5;
+			if(circleCollisionDetection(&watermelons[i], &player, false) || watermelons[i].radius < 4){
+				watermelons[i].enabled = false;
+				player.radius += 3;
+			}
+			}
+		}
 	//Player and anger
 	if (circleCollisionDetection(&player, &anger, true))
 	{
@@ -250,8 +262,8 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	for (size_t i = 0; i < ARRAY_LENGTH(watermelons); i++)
 		if (watermelons[i].enabled)
 		{
-			dst.x = watermelons[i].position_x;
-			dst.y = watermelons[i].position_y;
+			dst.x = watermelons[i].position_x - watermelons[i].radius;
+			dst.y = watermelons[i].position_y - watermelons[i].radius;
 			dst.w = dst.h = watermelons[i].radius * 2;
 			SDL_RenderCopyEx(ren, tex_watermelon, NULL, &dst, watermelons[i].angle, NULL, SDL_FLIP_NONE);
 		}

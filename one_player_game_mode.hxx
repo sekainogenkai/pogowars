@@ -72,7 +72,7 @@ private:
 	textured_circle defaultAnger, anger;
 	textured_circle defaultFear, fear;
 	textured_circle yinAndYangCircle;
-	particle_circle watermelons[0];
+	particle_circle watermelons[20];
 	double wallWidth;
 	double fearAccelerationRatio;
 	double angerAccelerationRatio;

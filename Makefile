@@ -20,7 +20,6 @@ RASTERS = \
 	Wall.png \
 	menuBack.png \
 	watermelon.png \
-	
 
 MY_GIMP = $${GIMP-gimp}
 
