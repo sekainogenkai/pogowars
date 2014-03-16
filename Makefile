@@ -18,7 +18,9 @@ RASTERS = \
 	anger.png \
 	yinAndYang.png \
 	Wall.png \
-	menuBack.png
+	menuBack.png \
+	watermelon.png \
+	
 
 MY_GIMP = $${GIMP-gimp}
 

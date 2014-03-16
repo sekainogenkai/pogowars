@@ -48,6 +48,14 @@ public:
 	virtual ~textured_circle();
 };
 
+class particle_circle : public circle {
+public:
+	particle_circle();
+	virtual ~particle_circle();
+	bool enabled;
+};
+	
+
 class one_player_game_mode : public game_mode {
 public:
 	one_player_game_mode(SDL_Renderer *ren);
@@ -64,6 +72,7 @@ private:
 	textured_circle defaultAnger, anger;
 	textured_circle defaultFear, fear;
 	textured_circle yinAndYangCircle;
+	particle_circle watermelons[0];
 	double wallWidth;
 	double fearAccelerationRatio;
 	double angerAccelerationRatio;
@@ -71,6 +80,7 @@ private:
 	double playerAcceleration;
 	SDL_Texture *tex_map;
 	SDL_Texture *tex_wall;
+	SDL_Texture *tex_watermelon;
 	bool left, right, up, down;
 	bool showScore;
 };

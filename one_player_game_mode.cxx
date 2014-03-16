@@ -10,6 +10,8 @@ extern "C" {
 #include "one_player_game_mode.hxx"
 #include "main.hxx"
 
+#define ARRAY_LENGTH(a) (sizeof(a)/sizeof(a[0]))
+
 static void vectorSpeedConstant(circle *circ);
 static double cart2angle(double x, double y);
 static void wallHit (circle *circ, double wallWidth);
@@ -28,6 +30,7 @@ static bool circleCollisionDetection(circle *circleOne, circle *circleTwo, bool 
 
 static void circleCollisionResponse(circle *circleOne, circle *circleTwo);
 
+
 circle::circle(double start_x, double start_y, double radius, double max_speed){
 	
 	position_x = start_x;
@@ -39,6 +42,13 @@ circle::circle(double start_x, double start_y, double radius, double max_speed){
 }
 circle::~circle() {
 }
+particle_circle::particle_circle()
+: circle(0, 0, 0, 0)
+{
+}
+particle_circle::~particle_circle() {
+}
+
 
 textured_circle::textured_circle(SDL_Renderer *ren, const char *texfile, double start_x, double start_y, double radius, double max_speed)
 : circle(start_x, start_y, radius, max_speed)
@@ -77,14 +87,14 @@ one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 	wallWidth = 80;
 	angerAccelerationRatio = 170;
 	fearAccelerationRatio = 190;
-	playerSeedStrength = .01;
+	playerSeedStrength = .02;
 	playerAcceleration = 1;
 	
 	
 	tex_map = loadTexture(ren, "Map.png");
 	tex_wall = loadTexture(ren, "Wall.png");
-	
-
+	tex_watermelon = loadTexture(ren, "watermelon.png");
+	showScore = false;
 	
 	left = right = up = down = false;
 }
@@ -183,7 +193,17 @@ void one_player_game_mode::animate(){
 	//Fear and anger
 	if (circleCollisionDetection(&fear, &anger, true))
 	{
-		
+		for (size_t i = 0; i < ARRAY_LENGTH(watermelons); i++)
+		{
+			if (!watermelons[i].enabled)
+			{
+			watermelons[i].enabled = true;
+			watermelons[i].position_x = (anger.position_x + fear.position_x)/2;
+			watermelons[i].position_y = (anger.position_y + fear.position_y)/2;
+			watermelons[i].radius = 40;
+			break;
+			}
+		}
 	}
 	//Player and anger
 	if (circleCollisionDetection(&player, &anger, true))
@@ -201,7 +221,8 @@ void one_player_game_mode::animate(){
 	//Player random seed
 	playerMakesRandomSeed(&player, &fear, playerSeedStrength);
 	
-	//Final circle logic
+	
+	//++++++++++++++ Final circle logic
 	//Final player
 	circleLogicCombined(&player, wallWidth);
 	//Final anger
@@ -214,13 +235,26 @@ void one_player_game_mode::animate(){
 	
 }
 
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ RENDERER I SAID RENDERER RENDERER I WISHED I COULD DOUBLE CAPS LOCK BUT THAT IS IMPOSSIBLE 
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	
 	SDL_RenderCopy(ren, tex_map, NULL, NULL);
 	
 	SDL_Rect dst;
 	
-	//SDL_Rect src; I will use this when I want to start to animate things
+	
+	// Watermelon particles.... yeah Watermelons because I can do whatever I want
+	for (size_t i = 0; i < ARRAY_LENGTH(watermelons); i++)
+		if (watermelons[i].enabled)
+		{
+			dst.x = watermelons[i].position_x;
+			dst.y = watermelons[i].position_y;
+			dst.w = dst.h = watermelons[i].radius * 2;
+			SDL_RenderCopyEx(ren, tex_watermelon, NULL, &dst, watermelons[i].angle, NULL, SDL_FLIP_NONE);
+		}
 	
 	//Yin and yang circle RENDER
 	yinAndYangCircle.render(ren);
@@ -255,6 +289,7 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 one_player_game_mode::~one_player_game_mode(){
 	SDL_DestroyTexture(tex_map);
 	SDL_DestroyTexture(tex_wall);
+	SDL_DestroyTexture(tex_watermelon);
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Functions
@@ -318,7 +353,7 @@ static void circleLogicCombined(circle *circ, double wallWidth){
 
 
 
-//Maybe later on make this take up less room now that I know how to do it
+//Maybe later on make this take up less room now that I know how to do it - Oh I did it alrgiht
 static void angerChaseFear(circle *anger, circle *fear, double angerAccelerationRatio, double fearAccelerationRatio){
 	
 	//Pretty simple just read the variables to know what is happening here
@@ -408,6 +443,7 @@ static void yinAndYangCircleLogic(circle *anger, circle *fear, circle *yinAndYan
 	yinAndYangCircle->angle = cart2angle(x_distance, y_distance);
 	
 }
+
 
 
 

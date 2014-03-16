@@ -19,7 +19,7 @@ public:
 private:
 	int menuPosition;
 	int textPos_x;
-	SDL_Texture *tex;
+	SDL_Texture *tex_menuFront;
 	SDL_Texture *tex_menuSelectBar;
 	SDL_Texture *tex_yinAndYang;
 	SDL_Texture *tex_menuBack;
