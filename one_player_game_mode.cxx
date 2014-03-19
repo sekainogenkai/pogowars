@@ -75,7 +75,7 @@ textured_circle::~textured_circle() {
 }
 
 one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
-: defaultPlayer(ren, "playerOne.png", 1920*.5, 1080*.5, 100, 15)   //The radius which is the second to last variable taken should normally be 37
+: defaultPlayer(ren, "playerOne.png", 1920*.5, 1080*.5, 37, 15)   //The radius which is the second to last variable taken should normally be 37
 , player(defaultPlayer)
 , defaultAnger(ren, "anger.png", 1920*.25, 1080*.25, 37, 20)
 , anger(defaultAnger)
@@ -89,12 +89,14 @@ one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 	fearAccelerationRatio = 190;
 	playerSeedStrength = .02;
 	playerAcceleration = 1;
-	
+	score = 0;
 	
 	tex_map = loadTexture(ren, "Map.png");
 	tex_wall = loadTexture(ren, "Wall.png");
 	tex_watermelon = loadTexture(ren, "watermelon.png");
 	showScore = false;
+	
+				
 	
 	left = right = up = down = false;
 }
@@ -104,6 +106,11 @@ void one_player_game_mode::clear(){
 	anger = defaultAnger;
 	fear = defaultFear;
 	showScore = false;
+	score = 0;
+	for (size_t i = 0; i < ARRAY_LENGTH(watermelons); i++)
+		{
+			watermelons[i].enabled = false;
+		}
 }
 
 bool one_player_game_mode::processEvents(SDL_Event *event, int *current_game_mode){
@@ -160,27 +167,29 @@ bool one_player_game_mode::processEvents(SDL_Event *event, int *current_game_mod
 }
 
 void one_player_game_mode::animate(){
-	if (up && !down){
-		player.velocity_y -= playerAcceleration;
-	}
-	if (down && !up){
-		player.velocity_y += playerAcceleration;
-	}
-	if (!up && !down){
-		player.velocity_y /= 1.025;
-		if (fabs(player.velocity_y) < .05)
-			player.velocity_y = 0;
-	}
-	if (left && !right){
-		player.velocity_x -= playerAcceleration;
-	}
-	if (right && !left){
-		player.velocity_x += playerAcceleration;
-	}
-	if (!left && !right){
-		player.velocity_x /= 1.025;
-		if (fabs(player.velocity_x) < .05)
-			player.velocity_x = 0;
+	if(!showScore){
+		if (up && !down){
+			player.velocity_y -= playerAcceleration;
+		}
+		if (down && !up){
+			player.velocity_y += playerAcceleration;
+		}
+		if (!up && !down){
+			player.velocity_y /= 1.025;
+			if (fabs(player.velocity_y) < .05)
+				player.velocity_y = 0;
+		}	
+		if (left && !right){
+			player.velocity_x -= playerAcceleration;
+		}
+		if (right && !left){
+			player.velocity_x += playerAcceleration;
+		}
+		if (!left && !right){
+			player.velocity_x /= 1.025;
+			if (fabs(player.velocity_x) < .05)
+				player.velocity_x = 0;
+		}
 	}
 	
 	//+++++++++++++++++++++++    After player input logic
@@ -192,7 +201,7 @@ void one_player_game_mode::animate(){
 	//Collision detection
 	
 	//Fear and anger makes the WATERMELON!!
-	if (circleCollisionDetection(&fear, &anger, true))
+	if (circleCollisionDetection(&fear, &anger, true) && !showScore)
 	{
 		for (size_t i = 0; i < ARRAY_LENGTH(watermelons); i++)
 		{
@@ -211,21 +220,27 @@ void one_player_game_mode::animate(){
 			if (watermelons[i].enabled)
 			{
 			watermelons[i].radius -= .5;
-			if(circleCollisionDetection(&watermelons[i], &player, false) || watermelons[i].radius < 4){
+			
+			if(circleCollisionDetection(&watermelons[i], &player, false) && !showScore) {
+				player.radius += 1;
+				score += watermelons[i].radius;
 				watermelons[i].enabled = false;
-				player.radius += 3;
 			}
+				if (watermelons[i].radius < 2)
+				{
+				watermelons[i].enabled = false;
+			    }
 			}
 		}
 	//Player and anger
 	if (circleCollisionDetection(&player, &anger, true))
 	{
-		player.radius --;
+		showScore = true;
 	}
 	//Player and fear
 	if (circleCollisionDetection(&player, &fear, true))
 	{
-		player.radius --;
+		showScore = true;
 	}
 	if (player.radius < 32)
 		showScore = true;
@@ -235,7 +250,9 @@ void one_player_game_mode::animate(){
 	
 	
 	//++++++++++++++ Final circle logic
+	
 	//Final player
+	
 	circleLogicCombined(&player, wallWidth);
 	//Final anger
 	circleLogicCombined(&anger, wallWidth);
@@ -283,11 +300,22 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	
 	SDL_RenderCopy(ren, tex_wall, NULL, NULL);
 	
+	
+	//Score being displayed constantly
+	SDL_Color white = {255, 255, 255};
+	SDL_Surface *score_surface = TTF_RenderText_Solid(font, ("Score: " + str((int)score)).c_str(), white);
+	SDL_Texture *tex_score = SDL_CreateTextureFromSurface(ren, score_surface);
+	SDL_FreeSurface(score_surface);
+	SDL_QueryTexture(tex_score, NULL, NULL, &dst.w, &dst.h);
+	dst.y = 30;
+	dst.x = (1920 - dst.w)/2;
+	SDL_RenderCopy(ren, tex_score, NULL, &dst);
+	SDL_DestroyTexture(tex_score);
 	//Ending score
 	if (showScore) 
 	{
 		SDL_Color black = {0, 0, 0};
-		SDL_Surface *score_surface = TTF_RenderText_Solid(font, ("Hah, you lose " + str((int)player.radius)).c_str(), black);
+		SDL_Surface *score_surface = TTF_RenderText_Solid(font, ("Hah, you lose with a score of: " + str((int)score)).c_str(), black);
 		SDL_Texture *tex_score = SDL_CreateTextureFromSurface(ren, score_surface);
 		SDL_FreeSurface(score_surface);
 		SDL_QueryTexture(tex_score, NULL, NULL, &dst.w, &dst.h);

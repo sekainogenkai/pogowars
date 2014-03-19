@@ -72,12 +72,13 @@ private:
 	textured_circle defaultAnger, anger;
 	textured_circle defaultFear, fear;
 	textured_circle yinAndYangCircle;
-	particle_circle watermelons[20];
+	particle_circle watermelons[4];
 	double wallWidth;
 	double fearAccelerationRatio;
 	double angerAccelerationRatio;
 	double playerSeedStrength;
 	double playerAcceleration;
+	int score;
 	SDL_Texture *tex_map;
 	SDL_Texture *tex_wall;
 	SDL_Texture *tex_watermelon;
