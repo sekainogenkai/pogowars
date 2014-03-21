@@ -26,9 +26,9 @@ static void playerMakesRandomSeed(circle *player, circle *fear, double randomPla
 
 static void yinAndYangCircleLogic(circle *anger, circle *fear, circle *yinAndYangCircleLogic);
 
-static bool circleCollisionDetection(circle *circleOne, circle *circleTwo, bool collidePhysics);
+static bool circleCollisionDetection(circle *circleOne, circle *circleTwo, bool collidePhysics, double wallWidth);
 
-static void circleCollisionResponse(circle *circleOne, circle *circleTwo);
+static void circleCollisionResponse(circle *circleOne, circle *circleTwo, double wallWidth);
 
 
 circle::circle(double start_x, double start_y, double radius, double max_speed){
@@ -77,18 +77,18 @@ textured_circle::~textured_circle() {
 one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 : defaultPlayer(ren, "playerOne.png", 1920*.5, 1080*.5, 37, 15)   //The radius which is the second to last variable taken should normally be 37
 , player(defaultPlayer)
-, defaultAnger(ren, "anger.png", 1920*.25, 1080*.25, 37, 12) //20
+, defaultAnger(ren, "anger.png", 1920*.25, 1080*.25, 37, 20) //20
 , anger(defaultAnger)
-, defaultFear(ren, "fear.png", 1920*.75, 1080*.75, 37, 12)  //24
+, defaultFear(ren, "fear.png", 1920*.75, 1080*.75, 37, 24)  //24
 , fear(defaultFear)
 , yinAndYangCircle(ren, "yinAndYang.png", 1920/2, 1080/2, 1920/2, 0)
 
 {
 	wallWidth = 80;
-	angerAccelerationRatio = 0; // 200
-	fearAccelerationRatio = 0; // 190
+	angerAccelerationRatio = 200; // 200
+	fearAccelerationRatio = 190; // 190
 	playerSeedStrength = .1;
-	playerAcceleration = 1;
+	playerAcceleration = 1.2;
 	score = 0;
 	
 	tex_map = loadTexture(ren, "Map.png");
@@ -201,7 +201,7 @@ void one_player_game_mode::animate(){
 	//Collision detection
 	
 	//Fear and anger makes the WATERMELON!!
-	if (circleCollisionDetection(&fear, &anger, true) && !showScore)
+	if (circleCollisionDetection(&fear, &anger, true, wallWidth) && !showScore)
 	{
 		for (size_t i = 0; i < ARRAY_LENGTH(watermelons); i++)
 		{
@@ -221,7 +221,7 @@ void one_player_game_mode::animate(){
 			{
 			watermelons[i].radius -= .5;
 			
-			if(circleCollisionDetection(&watermelons[i], &player, false) && !showScore) {
+			if(circleCollisionDetection(&watermelons[i], &player, false, wallWidth) && !showScore) {
 				player.radius += 1;
 				score += watermelons[i].radius;
 				watermelons[i].enabled = false;
@@ -233,12 +233,12 @@ void one_player_game_mode::animate(){
 			}
 		}
 	//Player and anger
-	if (circleCollisionDetection(&player, &anger, true))
+	if (circleCollisionDetection(&player, &anger, true, wallWidth))
 	{
 		showScore = true;
 	}
 	//Player and fear
-	if (circleCollisionDetection(&player, &fear, true))
+	if (circleCollisionDetection(&player, &fear, true, wallWidth))
 	{
 		showScore = true;
 	}
@@ -430,7 +430,7 @@ static void playerMakesRandomSeed(circle *player, circle *fear, double randomPla
 }
 
 
-static bool circleCollisionDetection(circle *circleOne, circle *circleTwo, bool collidePhysics){
+static bool circleCollisionDetection(circle *circleOne, circle *circleTwo, bool collidePhysics, double wallWidth){
 	
 	double x_distance = circleTwo->position_x - circleOne->position_x;
 	double y_distance = circleTwo->position_y - circleOne->position_y;
@@ -441,8 +441,8 @@ static bool circleCollisionDetection(circle *circleOne, circle *circleTwo, bool 
 		
 		if (collidePhysics)
 		{
-		circleCollisionResponse(circleOne, circleTwo);
-		circleCollisionResponse(circleTwo, circleOne);
+		circleCollisionResponse(circleOne, circleTwo, wallWidth);
+		circleCollisionResponse(circleTwo, circleOne, wallWidth);
 		
 		}
 		return true;
@@ -450,7 +450,7 @@ static bool circleCollisionDetection(circle *circleOne, circle *circleTwo, bool 
 	return false;
 }
 
-static void circleCollisionResponse(circle *circleOne, circle *circleTwo){
+static void circleCollisionResponse(circle *circleOne, circle *circleTwo, double wallWidth){
 	
 	//Setting up variables to put into the weird equation found from wikipedia at http://en.wikipedia.org/wiki/Elastic_collision at 2 and three-dimensional
 	double v1 = circleOne->vectorSpeed();
@@ -466,18 +466,18 @@ static void circleCollisionResponse(circle *circleOne, circle *circleTwo){
 	double sidePartForX =   v1 * sin((o1 - contactAngle)/180*M_PI) * cos((contactAngle)/180*M_PI + M_PI / 2);
 	double sidePartForY =   v1 * sin((o1 - contactAngle)/180*M_PI) * sin((contactAngle)/180*M_PI  + M_PI / 2);
 	
-	
 	// Put in velocities
-	circleOne->velocity_x = topPart/bottomPart * cos(contactAngle/180*M_PI) + sidePartForX;
-	circleOne->velocity_y = topPart/bottomPart * sin(contactAngle/180*M_PI) + sidePartForY;
-	
+	circleOne->velocity_x = (topPart/bottomPart * cos(contactAngle/180*M_PI) + sidePartForX);
+	circleOne->velocity_y = (topPart/bottomPart * sin(contactAngle/180*M_PI) + sidePartForY);
 	
 	//Move away if overlapping 
-		circleTwo->position_x = circleOne->position_x + cos(contactAngle/180*M_PI) * (circleTwo->radius + circleOne->radius + 1);
-		circleTwo->position_y = circleOne->position_y + sin(contactAngle/180*M_PI) * (circleTwo->radius + circleOne->radius + 1);
 	
+	//Make it so that it cannot get stuck in the wall with this change in placement
+	wallHit(circleOne , wallWidth);
+	
+	circleTwo->position_x = circleOne->position_x + cos(contactAngle/180*M_PI) * (circleTwo->radius + circleOne->radius );
+	circleTwo->position_y = circleOne->position_y + sin(contactAngle/180*M_PI) * (circleTwo->radius + circleOne->radius );
 }
-
 
 // Yin and yang circle in the background to follow the yin and yang circles
 static void yinAndYangCircleLogic(circle *anger, circle *fear, circle *yinAndYangCircle){
