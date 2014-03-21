@@ -77,17 +77,17 @@ textured_circle::~textured_circle() {
 one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 : defaultPlayer(ren, "playerOne.png", 1920*.5, 1080*.5, 37, 15)   //The radius which is the second to last variable taken should normally be 37
 , player(defaultPlayer)
-, defaultAnger(ren, "anger.png", 1920*.25, 1080*.25, 37, 20)
+, defaultAnger(ren, "anger.png", 1920*.25, 1080*.25, 37, 12) //20
 , anger(defaultAnger)
-, defaultFear(ren, "fear.png", 1920*.75, 1080*.75, 37, 24)
+, defaultFear(ren, "fear.png", 1920*.75, 1080*.75, 37, 12)  //24
 , fear(defaultFear)
 , yinAndYangCircle(ren, "yinAndYang.png", 1920/2, 1080/2, 1920/2, 0)
 
 {
 	wallWidth = 80;
-	angerAccelerationRatio = 200;
-	fearAccelerationRatio = 190;
-	playerSeedStrength = .02;
+	angerAccelerationRatio = 0; // 200
+	fearAccelerationRatio = 0; // 190
+	playerSeedStrength = .1;
 	playerAcceleration = 1;
 	score = 0;
 	
@@ -167,7 +167,7 @@ bool one_player_game_mode::processEvents(SDL_Event *event, int *current_game_mod
 }
 
 void one_player_game_mode::animate(){
-	if(!showScore){
+	
 		if (up && !down){
 			player.velocity_y -= playerAcceleration;
 		}
@@ -190,7 +190,7 @@ void one_player_game_mode::animate(){
 			if (fabs(player.velocity_x) < .05)
 				player.velocity_x = 0;
 		}
-	}
+	
 	
 	//+++++++++++++++++++++++    After player input logic
 	  
@@ -210,7 +210,7 @@ void one_player_game_mode::animate(){
 			watermelons[i].enabled = true;
 			watermelons[i].position_x = (anger.position_x + fear.position_x)/2;
 			watermelons[i].position_y = (anger.position_y + fear.position_y)/2;
-			watermelons[i].radius = 80;
+			watermelons[i].radius = 100;
 			break;
 			}
 		}
@@ -315,7 +315,7 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	if (showScore) 
 	{
 		SDL_Color black = {0, 0, 0};
-		SDL_Surface *score_surface = TTF_RenderText_Solid(font, ("Hah, you lose with a score of: " + str((int)score)).c_str(), black);
+		SDL_Surface *score_surface = TTF_RenderText_Solid(font, ("Hah, you lose " + str((int)score)).c_str(), black);
 		SDL_Texture *tex_score = SDL_CreateTextureFromSurface(ren, score_surface);
 		SDL_FreeSurface(score_surface);
 		SDL_QueryTexture(tex_score, NULL, NULL, &dst.w, &dst.h);
@@ -443,6 +443,7 @@ static bool circleCollisionDetection(circle *circleOne, circle *circleTwo, bool 
 		{
 		circleCollisionResponse(circleOne, circleTwo);
 		circleCollisionResponse(circleTwo, circleOne);
+		
 		}
 		return true;
 	}
@@ -458,15 +459,22 @@ static void circleCollisionResponse(circle *circleOne, circle *circleTwo){
 	double o2 = circleTwo->vectorAngle();
 	double m1 = pow(circleOne->radius, 2) *M_PI;
 	double m2 = pow(circleTwo->radius, 2) *M_PI;
-	double middleAngles = cart2angle((circleTwo->position_x - circleOne->position_x) , (circleTwo->position_y - circleOne->position_y));
+	double contactAngle = cart2angle((circleTwo->position_x - circleOne->position_x) , (circleTwo->position_y - circleOne->position_y));
 	
-	double topPart = v1 * cos(o1/180*M_PI) * (m1-m2) + 2*m2*v2 * cos((o2 - middleAngles)/180*M_PI);
+	double topPart = v1 * cos((o1 - contactAngle) /180*M_PI) * (m1-m2) + 2*m2*v2 * cos((o2 - contactAngle)/180*M_PI);
 	double bottomPart = m1 + m2;
-	double sidePartForX = cos(middleAngles/180*M_PI) + v1 * sin((o1-middleAngles)/180*M_PI) * cos((middleAngles + M_PI / 2)/180*M_PI);
-	double sidePartForY = sin(middleAngles/180*M_PI) + v1 * sin((o1 - middleAngles)/180*M_PI) * sin((middleAngles + M_PI / 2)/180*M_PI);
+	double sidePartForX =   v1 * sin((o1 - contactAngle)/180*M_PI) * cos((contactAngle)/180*M_PI + M_PI / 2);
+	double sidePartForY =   v1 * sin((o1 - contactAngle)/180*M_PI) * sin((contactAngle)/180*M_PI  + M_PI / 2);
 	
-	circleOne->velocity_x = topPart/bottomPart * sidePartForX;
-	circleTwo->velocity_y = topPart/bottomPart * sidePartForY;
+	
+	// Put in velocities
+	circleOne->velocity_x = topPart/bottomPart * cos(contactAngle/180*M_PI) + sidePartForX;
+	circleOne->velocity_y = topPart/bottomPart * sin(contactAngle/180*M_PI) + sidePartForY;
+	
+	
+	//Move away if overlapping 
+		circleTwo->position_x = circleOne->position_x + cos(contactAngle/180*M_PI) * (circleTwo->radius + circleOne->radius + 1);
+		circleTwo->position_y = circleOne->position_y + sin(contactAngle/180*M_PI) * (circleTwo->radius + circleOne->radius + 1);
 	
 }
 
@@ -481,7 +489,6 @@ static void yinAndYangCircleLogic(circle *anger, circle *fear, circle *yinAndYan
 	double y_distance =  anger->position_y - fear->position_y;
 	yinAndYangCircle->radius = sqrt(pow(x_distance, 2) + pow(y_distance,2));
 	yinAndYangCircle->angle = cart2angle(x_distance, y_distance);
-	
 }
 
 
