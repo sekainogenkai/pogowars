@@ -28,7 +28,7 @@ static void yinAndYangCircleLogic(circle *anger, circle *fear, circle *yinAndYan
 
 static bool circleCollisionDetection(circle *circleOne, circle *circleTwo, bool collidePhysics, double wallWidth);
 
-static void circleCollisionResponse(circle *circleOne, circle *circleTwo, double wallWidth);
+static void circleCollisionResponse(circle *circleOne, circle *circleTwo, double wallWidth, double *circleOne_new_velocity_x, double *circleOne_new_velocity_y);
 
 
 circle::circle(double start_x, double start_y, double radius, double max_speed){
@@ -441,16 +441,21 @@ static bool circleCollisionDetection(circle *circleOne, circle *circleTwo, bool 
 		
 		if (collidePhysics)
 		{
-		circleCollisionResponse(circleOne, circleTwo, wallWidth);
-		circleCollisionResponse(circleTwo, circleOne, wallWidth);
-		
+                        double circleOne_new_velocity_x;
+                        double circleOne_new_velocity_y;
+                        circleCollisionResponse(circleOne, circleTwo, wallWidth, &circleOne_new_velocity_x, &circleOne_new_velocity_y);
+                        // Don’t need to preserve circleTwo’s
+                        // velocity, can just write it directly.
+                        circleCollisionResponse(circleTwo, circleOne, wallWidth, &circleTwo->velocity_x, &circleTwo->velocity_y);
+                        circleOne->velocity_x = circleOne_new_velocity_x;
+                        circleOne->velocity_y = circleOne_new_velocity_y;
 		}
 		return true;
 	}
 	return false;
 }
 
-static void circleCollisionResponse(circle *circleOne, circle *circleTwo, double wallWidth){
+static void circleCollisionResponse(circle *circleOne, circle *circleTwo, double wallWidth, double *circleOne_new_velocity_x, double *circleOne_new_velocity_y) {
 	
 	//Setting up variables to put into the weird equation found from wikipedia at http://en.wikipedia.org/wiki/Elastic_collision at 2 and three-dimensional
 	double v1 = circleOne->vectorSpeed();
@@ -465,11 +470,11 @@ static void circleCollisionResponse(circle *circleOne, circle *circleTwo, double
 	double bottomPart = m1 + m2;
 	double sidePartForX =   v1 * sin((o1 - contactAngle)/180*M_PI) * cos((contactAngle)/180*M_PI + M_PI / 2);
 	double sidePartForY =   v1 * sin((o1 - contactAngle)/180*M_PI) * sin((contactAngle)/180*M_PI  + M_PI / 2);
-	
+
 	// Put in velocities
-	circleOne->velocity_x = (topPart/bottomPart * cos(contactAngle/180*M_PI) + sidePartForX);
-	circleOne->velocity_y = (topPart/bottomPart * sin(contactAngle/180*M_PI) + sidePartForY);
-	
+	*circleOne_new_velocity_x = (topPart/bottomPart * cos(contactAngle/180*M_PI) + sidePartForX);
+	*circleOne_new_velocity_y = (topPart/bottomPart * sin(contactAngle/180*M_PI) + sidePartForY);
+
 	//Move away if overlapping 
 	
 	//Make it so that it cannot get stuck in the wall with this change in placement
