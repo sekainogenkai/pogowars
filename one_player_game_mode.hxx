@@ -73,6 +73,7 @@ private:
 	textured_circle defaultFear, fear;
 	textured_circle yinAndYangCircle;
 	particle_circle watermelons[4];
+	particle_circle rcircle[50];
 	double wallWidth;
 	double fearAccelerationRatio;
 	double angerAccelerationRatio;
@@ -82,6 +83,8 @@ private:
 	SDL_Texture *tex_map;
 	SDL_Texture *tex_wall;
 	SDL_Texture *tex_watermelon;
+	SDL_Texture *tex_rcircle;
+	SDL_Texture *tex_endGame;
 	bool left, right, up, down;
 	bool showScore;
 };

@@ -77,26 +77,37 @@ textured_circle::~textured_circle() {
 one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 : defaultPlayer(ren, "playerOne.png", 1920*.5, 1080*.5, 37, 15)   //The radius which is the second to last variable taken should normally be 37
 , player(defaultPlayer)
-, defaultAnger(ren, "anger.png", 1920*.25, 1080*.25, 37, 20) //20
+, defaultAnger(ren, "anger.png", 1920*.25, 1080*.25, 37, 15) //20
 , anger(defaultAnger)
-, defaultFear(ren, "fear.png", 1920*.75, 1080*.75, 37, 24)  //24
+, defaultFear(ren, "fear.png", 1920*.75, 1080*.75, 37, 17)  //24
 , fear(defaultFear)
 , yinAndYangCircle(ren, "yinAndYang.png", 1920/2, 1080/2, 1920/2, 0)
 
 {
 	wallWidth = 80;
-	angerAccelerationRatio = 200; // 200
+	angerAccelerationRatio = 220; // 200
 	fearAccelerationRatio = 190; // 190
-	playerSeedStrength = .1;
+	playerSeedStrength = .01;
 	playerAcceleration = 1.2;
 	score = 0;
 	
 	tex_map = loadTexture(ren, "Map.png");
 	tex_wall = loadTexture(ren, "Wall.png");
 	tex_watermelon = loadTexture(ren, "watermelon.png");
+	tex_rcircle = loadTexture(ren, "rcircle.png");
+	tex_endGame = loadTexture(ren, "endGame.png");
 	showScore = false;
 	
-				
+	//Rcircle start points and velocities
+	for (size_t i = 0; i < ARRAY_LENGTH(rcircle); i++){
+		rcircle[i].position_x = wallWidth + fmod(i * 1029 + 257 * (i % 7), 1920 - 2*wallWidth);
+		rcircle[i].position_y = wallWidth + fmod(i * 703 + 51 * (i % 13), 1080 - 2*wallWidth);
+		rcircle[i].velocity_x = 7;
+		rcircle[i].velocity_y = -7;
+		rcircle[i].radius = 10;
+		rcircle[i].enabled = true;
+		rcircle[i].max_speed = 10;
+	}
 	
 	left = right = up = down = false;
 }
@@ -111,6 +122,15 @@ void one_player_game_mode::clear(){
 		{
 			watermelons[i].enabled = false;
 		}
+	//Rcircle start points and velocities
+	for (size_t i = 0; i < ARRAY_LENGTH(rcircle); i++){
+		rcircle[i].position_x = wallWidth + fmod(i * 1029 + 257 * (i % 7), 1920 - 2*wallWidth);
+		rcircle[i].position_y = wallWidth + fmod(i * 703 + 51 * (i % 13), 1080 - 2*wallWidth);
+		rcircle[i].velocity_x = 7;
+		rcircle[i].velocity_y = 7;
+		rcircle[i].radius = 10;
+		rcircle[i].enabled = true;
+	}
 }
 
 bool one_player_game_mode::processEvents(SDL_Event *event, int *current_game_mode){
@@ -193,12 +213,29 @@ void one_player_game_mode::animate(){
 	
 	
 	//+++++++++++++++++++++++    After player input logic
-	  
+	
+	//Testing if this is good enough for a pool game even though I don't want to make one
+	 anger.velocity_x /= 1.025;
+	 anger.velocity_y /= 1.025;
+	 fear.velocity_x /= 1.025;
+	 fear.velocity_y /= 1.025;
 	
 	//Anger circle chases fear circle and fear circle runs away from anger ball
 	angerChaseFear(&anger, &fear, angerAccelerationRatio, fearAccelerationRatio);
 	  
-	//Collision detection
+	
+	
+	for (size_t u = 0; u < ARRAY_LENGTH(rcircle); u++){
+		angerChaseFear(&rcircle[u], &player, 80, 0);
+		for (size_t i = u+1; i < ARRAY_LENGTH(rcircle); i++){
+		
+			circleCollisionDetection(&rcircle[u], &rcircle[i], true, wallWidth);
+		}
+	}
+		
+	
+	
+	
 	
 	//Fear and anger makes the WATERMELON!!
 	if (circleCollisionDetection(&fear, &anger, true, wallWidth) && !showScore)
@@ -222,7 +259,10 @@ void one_player_game_mode::animate(){
 			watermelons[i].radius -= .5;
 			
 			if(circleCollisionDetection(&watermelons[i], &player, false, wallWidth) && !showScore) {
-				player.radius += 1;
+				player.radius += 2;
+				for (size_t u = 0; u < ARRAY_LENGTH(rcircle); u++){
+					rcircle[u].radius += 1;
+				}
 				score += watermelons[i].radius;
 				watermelons[i].enabled = false;
 			}
@@ -258,9 +298,15 @@ void one_player_game_mode::animate(){
 	circleLogicCombined(&anger, wallWidth);
 	//Final fear
 	circleLogicCombined(&fear, wallWidth);
+	//Final rcircle
+	for (size_t i = 0; i < ARRAY_LENGTH(rcircle); i++){
+		circleLogicCombined(&rcircle[i], wallWidth);
+	}
 	
 	//Yin and yang circle logic
 	yinAndYangCircleLogic(&anger, &fear, &yinAndYangCircle);
+	
+	
 	
 }
 
@@ -275,6 +321,17 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	SDL_Rect dst;
 	
 	
+	
+	
+	//Background balls being rendered
+	for (size_t i = 0; i < ARRAY_LENGTH(rcircle); i++){
+			dst.x = rcircle[i].position_x - rcircle[i].radius;
+			dst.y = rcircle[i].position_y - rcircle[i].radius;
+			dst.w = dst.h = rcircle[i].radius * 2;
+			SDL_RenderCopyEx(ren, tex_rcircle, NULL, &dst, rcircle[i].angle, NULL, SDL_FLIP_NONE);
+		
+	}
+	
 	// Watermelon particles.... yeah Watermelons because I can do whatever I want
 	for (size_t i = 0; i < ARRAY_LENGTH(watermelons); i++)
 		if (watermelons[i].enabled)
@@ -284,6 +341,9 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			dst.w = dst.h = watermelons[i].radius * 2;
 			SDL_RenderCopyEx(ren, tex_watermelon, NULL, &dst, watermelons[i].angle, NULL, SDL_FLIP_NONE);
 		}
+	
+	
+	
 	
 	//Yin and yang circle RENDER
 	yinAndYangCircle.render(ren);
@@ -323,6 +383,8 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 		dst.x = (1920 - dst.w)/2;
 		SDL_RenderCopy(ren, tex_score, NULL, &dst);
 		SDL_DestroyTexture(tex_score);
+		
+		SDL_RenderCopy(ren, tex_endGame, NULL, NULL);
 	}
 }
 
@@ -330,6 +392,8 @@ one_player_game_mode::~one_player_game_mode(){
 	SDL_DestroyTexture(tex_map);
 	SDL_DestroyTexture(tex_wall);
 	SDL_DestroyTexture(tex_watermelon);
+	SDL_DestroyTexture(tex_rcircle);
+	SDL_DestroyTexture(tex_endGame);
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Functions
@@ -475,11 +539,10 @@ static void circleCollisionResponse(circle *circleOne, circle *circleTwo, double
 	*circleOne_new_velocity_x = (topPart/bottomPart * cos(contactAngle/180*M_PI) + sidePartForX);
 	*circleOne_new_velocity_y = (topPart/bottomPart * sin(contactAngle/180*M_PI) + sidePartForY);
 
-	//Move away if overlapping 
-	
 	//Make it so that it cannot get stuck in the wall with this change in placement
 	wallHit(circleOne , wallWidth);
 	
+	//Move away if overlapping 
 	circleTwo->position_x = circleOne->position_x + cos(contactAngle/180*M_PI) * (circleTwo->radius + circleOne->radius );
 	circleTwo->position_y = circleOne->position_y + sin(contactAngle/180*M_PI) * (circleTwo->radius + circleOne->radius );
 }
