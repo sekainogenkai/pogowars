@@ -14,6 +14,7 @@ RASTERS = \
 	menuSelectBar.png \
 	Map.png \
 	playerOne.png \
+	playerTwo.png \
 	fear.png \
 	anger.png \
 	yinAndYang.png \
@@ -21,7 +22,10 @@ RASTERS = \
 	menuBack.png \
 	watermelon.png \
 	rcircle.png \
-	endGame.png
+	endGame.png \
+	rcircle2.png \
+	leftWin.png \
+	rightWin.png 
 	
 
 MY_GIMP = $${GIMP-gimp}

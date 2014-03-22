@@ -74,29 +74,41 @@ textured_circle::~textured_circle() {
 		/*} else std::cerr << "not destryojing thing " << ((size_t)tex) << " because I am " << ((size_t)(void*)this) << " instead of " << ((size_t)this_that_should_kill_tex) << std::endl;*/
 }
 
-one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
-: defaultPlayer(ren, "playerOne.png", 1920*.5, 1080*.5, 37, 15)   //The radius which is the second to last variable taken should normally be 37
+one_player_game_mode::one_player_game_mode(SDL_Renderer *ren, bool twoPlayerMode)
+: defaultPlayer(ren, "playerOne.png", !twoPlayerMode ? 1920*.5 : 1920*.9, !twoPlayerMode ? 1080*.5 : 1080 *.1, 37, 15)   //The radius which is the second to last variable taken should normally be 37
 , player(defaultPlayer)
-, defaultAnger(ren, "anger.png", 1920*.25, 1080*.25, 37, 15) //20
+, defaultPlayerTwo(ren, "playerTwo.png", 1920*.1, 1080*.9, 37, 15)   //The radius which is the second to last variable taken should normally be 37
+, playerTwo(defaultPlayerTwo)
+, defaultAnger(ren, "anger.png", 1920*.1, 1080*.1, 37, 15) //20
 , anger(defaultAnger)
-, defaultFear(ren, "fear.png", 1920*.75, 1080*.75, 37, 17)  //24
+, defaultFear(ren, "fear.png", 1920*.9, 1080*.9, 37, 17)  //24
 , fear(defaultFear)
 , yinAndYangCircle(ren, "yinAndYang.png", 1920/2, 1080/2, 1920/2, 0)
 
 {
+	
+	this->twoPlayerMode = twoPlayerMode;
+	
 	wallWidth = 80;
 	angerAccelerationRatio = 220; // 200
 	fearAccelerationRatio = 190; // 190
 	playerSeedStrength = .01;
 	playerAcceleration = 1.2;
 	score = 0;
+	lowerRadius = 5;
+	radiusDifferentMax = 15 * 2;
 	
 	tex_map = loadTexture(ren, "Map.png");
 	tex_wall = loadTexture(ren, "Wall.png");
 	tex_watermelon = loadTexture(ren, "watermelon.png");
 	tex_rcircle = loadTexture(ren, "rcircle.png");
 	tex_endGame = loadTexture(ren, "endGame.png");
+	tex_rcircle2 = loadTexture(ren, "rcircle2.png");
+	tex_leftWin = loadTexture(ren, "leftWin.png");
+	tex_rightWin = loadTexture(ren, "rightWin.png");
+	
 	showScore = false;
+	
 	
 	//Rcircle start points and velocities
 	for (size_t i = 0; i < ARRAY_LENGTH(rcircle); i++){
@@ -110,12 +122,14 @@ one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 	}
 	
 	left = right = up = down = false;
+	left2 = right2 = up2 = down2 = false;
 }
 
 void one_player_game_mode::clear(){
 	player = defaultPlayer;
 	anger = defaultAnger;
 	fear = defaultFear;
+	playerTwo = defaultPlayerTwo;
 	showScore = false;
 	score = 0;
 	for (size_t i = 0; i < ARRAY_LENGTH(watermelons); i++)
@@ -142,38 +156,75 @@ bool one_player_game_mode::processEvents(SDL_Event *event, int *current_game_mod
 		switch (event->key.keysym.sym)
 		{
 		case SDLK_LEFT:
+		case SDLK_KP_4:
 			left = true;
 			break;
 		case SDLK_RIGHT:
+		case SDLK_KP_6:
 			right = true;
 			break;
 		case SDLK_UP:
+		case SDLK_KP_8:
 			up = true;
 			break;
 		case SDLK_DOWN:
+		case SDLK_KP_5:
 			down = true;
+			break;
+		//Two player key down
+		case SDLK_a:
+			left2 = true;
+			break;
+		case SDLK_d:
+			right2 = true;
+			break;
+		case SDLK_w:
+			up2 = true;
+			break;
+		case SDLK_s:
+			down2 = true;
 			break;
 		}
 		break;
 		
-		case SDL_KEYUP:
+		//KEY UP
+	case SDL_KEYUP:
 		if (event->key.repeat)
 			break;
 		switch (event->key.keysym.sym)
 		{
 		case SDLK_LEFT:
+		case SDLK_KP_4:
 			left = false;
 			break;
 		case SDLK_RIGHT:
+		case SDLK_KP_6:
 			right = false;
 			break;
 		case SDLK_UP:
+		case SDLK_KP_8:
 			up = false;
 			break;
 		case SDLK_DOWN:
+		case SDLK_KP_5:
 			down = false;
 			break;
+			
+			// Second player key up
+		case SDLK_a:
+			left2 = false;
+			break;
+		case SDLK_d:
+			right2 = false;
+			break;
+		case SDLK_w:
+			up2 = false;
+			break;
+		case SDLK_s:
+			down2 = false;
+			break;
 		case SDLK_RETURN:
+		case SDLK_KP_ENTER:
 			if (showScore)
 			{
 				*current_game_mode = 0;
@@ -187,7 +238,7 @@ bool one_player_game_mode::processEvents(SDL_Event *event, int *current_game_mod
 }
 
 void one_player_game_mode::animate(){
-	
+	//Player one Key things
 		if (up && !down){
 			player.velocity_y -= playerAcceleration;
 		}
@@ -210,6 +261,31 @@ void one_player_game_mode::animate(){
 			if (fabs(player.velocity_x) < .05)
 				player.velocity_x = 0;
 		}
+	//Player two key things
+	if (twoPlayerMode){
+		if (up2 && !down2){
+			playerTwo.velocity_y -= playerAcceleration;
+		}
+		if (down2 && !up2){
+			playerTwo.velocity_y += playerAcceleration;
+		}
+		if (!up2 && !down2){
+			playerTwo.velocity_y /= 1.025;
+			if (fabs(playerTwo.velocity_y) < .05)
+				playerTwo.velocity_y = 0;
+		}	
+		if (left2 && !right2){
+			playerTwo.velocity_x -= playerAcceleration;
+		}
+		if (right2 && !left2){
+			playerTwo.velocity_x += playerAcceleration;
+		}
+		if (!left2 && !right2){
+			playerTwo.velocity_x /= 1.025;
+			if (fabs(playerTwo.velocity_x) < .05)
+				playerTwo.velocity_x = 0;
+		}
+	}
 	
 	
 	//+++++++++++++++++++++++    After player input logic
@@ -226,7 +302,7 @@ void one_player_game_mode::animate(){
 	
 	
 	for (size_t u = 0; u < ARRAY_LENGTH(rcircle); u++){
-		angerChaseFear(&rcircle[u], &player, 80, 0);
+		angerChaseFear(&rcircle[u], !twoPlayerMode || u < ARRAY_LENGTH(rcircle)/2 ? &player : &playerTwo, 220, 0);
 		for (size_t i = u+1; i < ARRAY_LENGTH(rcircle); i++){
 		
 			circleCollisionDetection(&rcircle[u], &rcircle[i], true, wallWidth);
@@ -252,6 +328,7 @@ void one_player_game_mode::animate(){
 			}
 		}
 	}
+	//Watermellon logic
 	for (size_t i = 0; i < ARRAY_LENGTH(watermelons); i++)
 		{
 			if (watermelons[i].enabled)
@@ -261,7 +338,18 @@ void one_player_game_mode::animate(){
 			if(circleCollisionDetection(&watermelons[i], &player, false, wallWidth) && !showScore) {
 				player.radius += 2;
 				for (size_t u = 0; u < ARRAY_LENGTH(rcircle); u++){
-					rcircle[u].radius += 1;
+					if (!twoPlayerMode || u < ARRAY_LENGTH(rcircle)/2)
+						rcircle[u].radius += 1;
+				}
+				score += watermelons[i].radius;
+				watermelons[i].enabled = false;
+			}
+			//Two player mode
+			if(circleCollisionDetection(&watermelons[i], &playerTwo, false, wallWidth) && !showScore && twoPlayerMode) {
+				playerTwo.radius += 2;
+				for (size_t u = 0; u < ARRAY_LENGTH(rcircle); u++){
+					if (u >= ARRAY_LENGTH(rcircle)/2)
+						rcircle[u].radius += 1;
 				}
 				score += watermelons[i].radius;
 				watermelons[i].enabled = false;
@@ -273,27 +361,46 @@ void one_player_game_mode::animate(){
 			}
 		}
 	//Player and anger
-	if (circleCollisionDetection(&player, &anger, true, wallWidth))
+	if (circleCollisionDetection(&player, &anger, true, wallWidth) || (circleCollisionDetection(&player, &fear, true, wallWidth)))
 	{
-		showScore = true;
+		if(!twoPlayerMode){
+			showScore = true;
+		}else{
+			if (!showScore)
+				player.radius -= lowerRadius;
+		}
 	}
-	//Player and fear
-	if (circleCollisionDetection(&player, &fear, true, wallWidth))
-	{
-		showScore = true;
+	//Twoplayer
+	if (twoPlayerMode){
+		if (circleCollisionDetection(&playerTwo, &anger, true, wallWidth) || circleCollisionDetection(&playerTwo, &fear, true, wallWidth))
+		{
+			if(!showScore)
+				playerTwo.radius -= lowerRadius;
+		}
+	//End game if both players are too small
+		if (player.radius < 20 || playerTwo.radius < 20 || abs(player.radius - playerTwo.radius) >= radiusDifferentMax){
+		
+			showScore = true;
+		
+		}
+		//Player collision
+		circleCollisionDetection(&playerTwo, &player, true, wallWidth);
 	}
-	if (player.radius < 32)
-		showScore = true;
 
 	//Player random seed
-	playerMakesRandomSeed(&player, &fear, playerSeedStrength);
 	
+	playerMakesRandomSeed(&player, &fear, playerSeedStrength);
+	if(twoPlayerMode){
+		playerMakesRandomSeed(&playerTwo, &fear, playerSeedStrength);
+	}
 	
 	//++++++++++++++ Final circle logic
 	
 	//Final player
-	
 	circleLogicCombined(&player, wallWidth);
+	//Fianl player 2
+	if (twoPlayerMode)
+		circleLogicCombined(&playerTwo, wallWidth);
 	//Final anger
 	circleLogicCombined(&anger, wallWidth);
 	//Final fear
@@ -322,13 +429,13 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	
 	
 	
-	
+	//(<expression> <bool expression>) ? <if true> : <if false>
 	//Background balls being rendered
 	for (size_t i = 0; i < ARRAY_LENGTH(rcircle); i++){
 			dst.x = rcircle[i].position_x - rcircle[i].radius;
 			dst.y = rcircle[i].position_y - rcircle[i].radius;
 			dst.w = dst.h = rcircle[i].radius * 2;
-			SDL_RenderCopyEx(ren, tex_rcircle, NULL, &dst, rcircle[i].angle, NULL, SDL_FLIP_NONE);
+			SDL_RenderCopyEx(ren, !twoPlayerMode || i < ARRAY_LENGTH(rcircle)/2 ? tex_rcircle : tex_rcircle2, NULL, &dst, rcircle[i].angle, NULL, SDL_FLIP_NONE);
 		
 	}
 	
@@ -350,9 +457,13 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 
 	// Player one RENDER
 	player.render(ren);
+	//Player two RENDER
+	if(twoPlayerMode)
+		playerTwo.render(ren);
 	
 	// Anger ball renderer RENDER
 	anger.render(ren);
+	
 	
 	
 	//Fear RENDER
@@ -362,29 +473,63 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	
 	
 	//Score being displayed constantly
-	SDL_Color white = {255, 255, 255};
-	SDL_Surface *score_surface = TTF_RenderText_Solid(font, ("Score: " + str((int)score)).c_str(), white);
-	SDL_Texture *tex_score = SDL_CreateTextureFromSurface(ren, score_surface);
-	SDL_FreeSurface(score_surface);
-	SDL_QueryTexture(tex_score, NULL, NULL, &dst.w, &dst.h);
-	dst.y = 30;
-	dst.x = (1920 - dst.w)/2;
-	SDL_RenderCopy(ren, tex_score, NULL, &dst);
-	SDL_DestroyTexture(tex_score);
-	//Ending score
-	if (showScore) 
-	{
-		SDL_Color black = {0, 0, 0};
-		SDL_Surface *score_surface = TTF_RenderText_Solid(font, ("Hah, you lose " + str((int)score)).c_str(), black);
+	if (!twoPlayerMode){
+		SDL_Color white = {255, 255, 255};
+		SDL_Surface *score_surface = TTF_RenderText_Solid(font, ("Score: " + str((int)score)).c_str(), white);
 		SDL_Texture *tex_score = SDL_CreateTextureFromSurface(ren, score_surface);
 		SDL_FreeSurface(score_surface);
 		SDL_QueryTexture(tex_score, NULL, NULL, &dst.w, &dst.h);
-		dst.y = (1080 - dst.h)/2;
+		dst.y = 30;
 		dst.x = (1920 - dst.w)/2;
 		SDL_RenderCopy(ren, tex_score, NULL, &dst);
 		SDL_DestroyTexture(tex_score);
+		//Ending score
+		if (showScore) 
+		{
+			SDL_Surface *score_surface = TTF_RenderText_Solid(font, ("Hah, you lose " + str((int)score)).c_str(), white);
+			SDL_Texture *tex_score = SDL_CreateTextureFromSurface(ren, score_surface);
+			SDL_FreeSurface(score_surface);
+			SDL_QueryTexture(tex_score, NULL, NULL, &dst.w, &dst.h);
+			dst.y = (1080 - dst.h)/2;
+			dst.x = (1920 - dst.w)/2;
+			SDL_RenderCopy(ren, tex_score, NULL, &dst);
+			SDL_DestroyTexture(tex_score);
 		
-		SDL_RenderCopy(ren, tex_endGame, NULL, NULL);
+			SDL_RenderCopy(ren, tex_endGame, NULL, NULL);
+		}
+	}
+	if (twoPlayerMode){
+		SDL_Color blue = {0, 0, 255};
+		SDL_Color yellow = {255, 255, 0};
+		SDL_Color white = {255, 255, 255};
+		double playerRadiusDifference = player.radius - playerTwo.radius;
+		SDL_Surface *score_surface;
+		if (playerRadiusDifference == 0){
+			score_surface = TTF_RenderText_Solid(font, "TIED", white);
+		}
+		else {
+			SDL_Color *score_color;
+			if (playerRadiusDifference < 0){
+				score_color = &blue;
+			} else {
+				score_color = &yellow;
+			}
+			score_surface = TTF_RenderText_Solid(font, ("Winning by: " + str((int)abs(playerRadiusDifference))).c_str(), *score_color);
+		}
+			SDL_Texture *tex_score = SDL_CreateTextureFromSurface(ren, score_surface);
+			SDL_FreeSurface(score_surface);
+			SDL_QueryTexture(tex_score, NULL, NULL, &dst.w, &dst.h);
+			dst.y = 30;
+			dst.x = (1920 - dst.w)/2;
+			SDL_RenderCopy(ren, tex_score, NULL, &dst);
+			SDL_DestroyTexture(tex_score);
+		if (showScore)	{
+			if (playerRadiusDifference < 0){
+				SDL_RenderCopy(ren, tex_rightWin, NULL, NULL);
+			}else{
+				SDL_RenderCopy(ren, tex_leftWin, NULL, NULL);
+			}
+		}
 	}
 }
 
@@ -394,6 +539,9 @@ one_player_game_mode::~one_player_game_mode(){
 	SDL_DestroyTexture(tex_watermelon);
 	SDL_DestroyTexture(tex_rcircle);
 	SDL_DestroyTexture(tex_endGame);
+	SDL_DestroyTexture(tex_rcircle2);
+	SDL_DestroyTexture(tex_leftWin);
+	SDL_DestroyTexture(tex_rightWin);
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Functions

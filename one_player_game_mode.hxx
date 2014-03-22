@@ -58,7 +58,7 @@ public:
 
 class one_player_game_mode : public game_mode {
 public:
-	one_player_game_mode(SDL_Renderer *ren);
+	one_player_game_mode(SDL_Renderer *ren, bool twoPlayerMode);
 
 	virtual bool processEvents(SDL_Event *event, int *current_game_mode);
 	virtual void animate();
@@ -68,11 +68,13 @@ public:
 private:
 	void clear();
 
+	bool twoPlayerMode;
 	textured_circle defaultPlayer, player;
+	textured_circle defaultPlayerTwo, playerTwo;
 	textured_circle defaultAnger, anger;
 	textured_circle defaultFear, fear;
 	textured_circle yinAndYangCircle;
-	particle_circle watermelons[4];
+	particle_circle watermelons[3];
 	particle_circle rcircle[50];
 	double wallWidth;
 	double fearAccelerationRatio;
@@ -80,12 +82,18 @@ private:
 	double playerSeedStrength;
 	double playerAcceleration;
 	int score;
+	int radiusDifferentMax;
+	int lowerRadius;
 	SDL_Texture *tex_map;
 	SDL_Texture *tex_wall;
 	SDL_Texture *tex_watermelon;
 	SDL_Texture *tex_rcircle;
 	SDL_Texture *tex_endGame;
+	SDL_Texture *tex_rcircle2;
+	SDL_Texture *tex_rightWin;
+	SDL_Texture *tex_leftWin;
 	bool left, right, up, down;
+	bool left2, right2, up2, down2;
 	bool showScore;
 };
 

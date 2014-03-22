@@ -99,7 +99,8 @@ int main(int argc, char *argv[])
 	
 	game_mode *game_modes[] = {
 		new menu_game_mode(ren),
-		new one_player_game_mode(ren),
+		new one_player_game_mode(ren, false),
+		new one_player_game_mode(ren, true),
 	};
 	int current_game_mode = 0;
 
@@ -116,6 +117,11 @@ int main(int argc, char *argv[])
 				// call mode-specific event handler
 				int old_current_game_mode = current_game_mode;
 				game_modes[current_game_mode]->processEvents(&event, &current_game_mode);
+				if ((size_t)current_game_mode >= sizeof(game_modes)/sizeof(game_modes[0]))
+				{
+					quit = true;
+					break;
+				}
 				if (old_current_game_mode != current_game_mode)
 					redraw = true;
 				// run generic event handlers
@@ -153,7 +159,8 @@ int main(int argc, char *argv[])
 				
 				// Eat all of the other events while we're at it.
 			} while (SDL_PollEvent(&event));
-
+			if (quit)
+				break;
 			
 			if (animate)
 			{

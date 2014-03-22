@@ -22,16 +22,19 @@ bool menu_game_mode::processEvents(SDL_Event *event, int *current_game_mode){
 		switch (event->key.keysym.sym)
 		{
 		case SDLK_UP:
+		case SDLK_KP_8:
 			menuPosition--;
 			if(menuPosition < 1)
 				menuPosition = 1;
 			break;
 		case SDLK_DOWN:
+		case SDLK_KP_5:
 			menuPosition++;
 			if(menuPosition > 3)
 				menuPosition =3;
 			break;
 		case SDLK_RETURN:
+		case SDLK_KP_ENTER:
 			*current_game_mode = menuPosition;
 			break;
 		}
