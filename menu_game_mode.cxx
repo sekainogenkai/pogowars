@@ -5,7 +5,7 @@
 
 
 menu_game_mode::menu_game_mode(SDL_Renderer *ren){
-	menuPosition = 1;
+	menuPosition = MENU_POSITION_START;
 	mainMenu = true;
 	textPos_x = 0;
 	menuRod_y = 0;
@@ -77,9 +77,13 @@ bool menu_game_mode::processEvents(SDL_Event *event, int *current_game_mode){
 		case SDLK_RIGHT:
 		case SDLK_KP_6:
 			right = true;
+			if (!mainMenu && menuPosition == MENU_POSITION_QUIT)
+				*current_game_mode = -1;
 			break;
 		case SDLK_d:
 			right2 = true;
+			if (!mainMenu && menuPosition == MENU_POSITION_QUIT)
+				*current_game_mode = -1;
 			break;
 		
 		// case show help information
@@ -128,10 +132,10 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 		redBack = false;
 		blueBack = false;
 	// Menu position
-		if ((up || up2) && menuPosition > 1)
-			menuPosition--;
-		if ((down || down2) && menuPosition < 4)
-			menuPosition++;
+		if ((up || up2) && menuPosition > MENU_POSITION_START)
+			menuPosition = static_cast<menu_position>(menuPosition - 1);
+		if ((down || down2) && menuPosition < MENU_POSITION_QUIT)
+			menuPosition = static_cast<menu_position>(menuPosition + 1);
 		if (right || right2)
 			mainMenu = false;
 	//This is for the menu rod
@@ -154,13 +158,13 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 		//back of menu
 		SDL_RenderCopy(ren, tex_menuBack, NULL, NULL);
 		// Display what part of main menu on
-		if(menuPosition == 1)
+		if(menuPosition == MENU_POSITION_START)
 			SDL_RenderCopy(ren, tex_startGame, NULL, NULL);
-		else if (menuPosition == 2)
+		else if (menuPosition == MENU_POSITION_SETTINGS)
 				SDL_RenderCopy(ren, tex_settings, NULL, NULL);
-		else if (menuPosition == 3)
+		else if (menuPosition == MENU_POSITION_CREDITS)
 			SDL_RenderCopy(ren, tex_credits, NULL, NULL);
-		else if (menuPosition == 4)
+		else if (menuPosition == MENU_POSITION_QUIT)
 			SDL_RenderCopy(ren, tex_quit, NULL, NULL);
 		
 		//RENDER menu gear
@@ -210,7 +214,7 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 		}
 	// If out of main menu
 	if (!mainMenu){
-		if (menuPosition == 1){   //Start Game
+		if (menuPosition == MENU_POSITION_START){   //Start Game
 				SDL_RenderCopy(ren, tex_startGame_clickToJoin, NULL, NULL);
 				
 				//Blinking keyboard instructions
@@ -304,12 +308,12 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			}
 			
 		}
-		if (menuPosition == 2){  //Settings
+		if (menuPosition == MENU_POSITION_SETTINGS){  //Settings
 			if (left || left2){
 				mainMenu = true;
 			}
 		}
-		if (menuPosition == 3){  //Credits
+		if (menuPosition == MENU_POSITION_CREDITS){  //Credits
 			if (credits_x <0){
 				credits_x += 100;
 			}
@@ -322,7 +326,7 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 				mainMenu = true;
 			}
 		}
-		if (menuPosition == 4){   //Quit
+		if (menuPosition == MENU_POSITION_QUIT){   //Quit
 			numberOfShade_wanted = 60;
 			dst.x = 640;
 			dst.y = 360;

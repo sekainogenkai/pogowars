@@ -19,7 +19,12 @@ public:
 private:
 	bool up, down, left, right;
 	bool up2, down2, left2, right2;
-	int menuPosition;
+	enum menu_position {
+		MENU_POSITION_START = 1,
+		MENU_POSITION_SETTINGS,
+		MENU_POSITION_CREDITS,
+		MENU_POSITION_QUIT,
+		} menuPosition;
 	int menuRod_y;
 	int blinkingLights;
 	int credits_x;

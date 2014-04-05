@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 				// call mode-specific event handler
 				int old_current_game_mode = current_game_mode;
 				game_modes[current_game_mode]->processEvents(&event, &current_game_mode);
-				if ((size_t)current_game_mode >= sizeof(game_modes)/sizeof(game_modes[0]))
+				if (current_game_mode < 0 || (size_t)current_game_mode >= sizeof(game_modes)/sizeof(game_modes[0]))
 				{
 					quit = true;
 					break;
