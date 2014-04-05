@@ -214,17 +214,19 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 		}
 	// If out of main menu
 	if (!mainMenu){
-		if (menuPosition == MENU_POSITION_START){   //Start Game
-				SDL_RenderCopy(ren, tex_startGame_clickToJoin, NULL, NULL);
-				
-				//Blinking keyboard instructions
-				blinkingLights += 1;
-				if (blinkingLights > 50)
-					blinkingLights = 0;
-				if (blinkingLights > 25)
-					SDL_RenderCopy(ren, tex_startGame_blinkingLights, NULL, NULL);
-					
-				numberOfShade_wanted = 50;
+		switch (menuPosition)
+		{
+		case MENU_POSITION_START: //Start Game
+			SDL_RenderCopy(ren, tex_startGame_clickToJoin, NULL, NULL);
+
+			//Blinking keyboard instructions
+			blinkingLights += 1;
+			if (blinkingLights > 50)
+				blinkingLights = 0;
+			if (blinkingLights > 25)
+				SDL_RenderCopy(ren, tex_startGame_blinkingLights, NULL, NULL);
+
+			numberOfShade_wanted = 50;
 			if (down)
 				blueJoin = true;
 			if (down2)
@@ -306,14 +308,13 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 				SDL_QueryTexture(tex_READY2, NULL, NULL, &dst.w, &dst.h);
 				SDL_RenderCopy(ren, tex_READY2,NULL, &dst);
 			}
-			
-		}
-		if (menuPosition == MENU_POSITION_SETTINGS){  //Settings
+			break;
+		case MENU_POSITION_SETTINGS: //Settings
 			if (left || left2){
 				mainMenu = true;
 			}
-		}
-		if (menuPosition == MENU_POSITION_CREDITS){  //Credits
+			break;
+		case MENU_POSITION_CREDITS: //Credits
 			if (credits_x <0){
 				credits_x += 100;
 			}
@@ -325,8 +326,8 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			if (left || left2){
 				mainMenu = true;
 			}
-		}
-		if (menuPosition == MENU_POSITION_QUIT){   //Quit
+			break;
+		case MENU_POSITION_QUIT: //Quit
 			numberOfShade_wanted = 60;
 			dst.x = 640;
 			dst.y = 360;
@@ -339,7 +340,8 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			if (right || right2){
 				
 			}
-		}
+			break;
+		} // switch (menuPosition)
 	}
 	
 	// Must be done after all input
