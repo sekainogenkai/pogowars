@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 	}
 	
 	
-	SDL_Window *win = SDL_CreateWindow("Angry Chase", 100, 100, 1920/1.5, 1080/1.5, SDL_WINDOW_MAXIMIZED|SDL_WINDOW_RESIZABLE|SDL_WINDOW_FULLSCREEN_DESKTOP);
+	SDL_Window *win = SDL_CreateWindow("Pogo Duel", 100, 100, 1920, 1080, SDL_WINDOW_MAXIMIZED|SDL_WINDOW_RESIZABLE|SDL_WINDOW_FULLSCREEN_DESKTOP);
 	void SDL_MaximizeWindow(SDL_Window* window);
     if (win == NULL){
 	    std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
@@ -229,6 +229,3 @@ static Uint32 tickTimerCallback(Uint32 interval, void *param)
 	// Specify the amount of time to wait before running this event again.
 	return interval;
 }
-
-
-

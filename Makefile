@@ -1,6 +1,6 @@
 .POSIX:
 .PHONY: all clean
-.SUFFIXES: .cxx .o .xcf .png
+.SUFFIXES: .cxx .o .xcf .png .svg
 
 SDL2_PKG = sdl2 SDL2_image SDL2_ttf
 
@@ -9,9 +9,30 @@ MY_CXXFLAGS = -Wall $$(pkg-config --cflags $(SDL2_PKG))
 EXEEXT = .exe
 OBJ = main.o game_mode.o menu_game_mode.o one_player_game_mode.o
 RASTERS = \
+	menuBack.png \
+	startGame.png \
+	settings.png \
+	credits.png \
+	quit.png \
+	menuRod.png \
+	menuGear.png \
+	lightForeground.png \
+	menuP.png \
+	shade.png \
+	startGame_clickToJoin.png \
+	startGame_blinkingLights.png \
+	keyboardInstructions.png \
+	shade.png \
+	inCredits.png \
+	redJoin.png \
+	blueJoin.png \
+	READY.png \
+	READY2.png \
+	BACK.png \
+	BACK2.png \
+	inQuit.png \
 	pakman.png \
 	Angry_Chase.png \
-	menuSelectBar.png \
 	Map.png \
 	playerOne.png \
 	playerTwo.png \
@@ -19,13 +40,7 @@ RASTERS = \
 	anger.png \
 	yinAndYang.png \
 	Wall.png \
-	menuBack.png \
 	watermelon.png \
-	rcircle.png \
-	endGame.png \
-	rcircle2.png \
-	leftWin.png \
-	rightWin.png 
 	
 
 MY_GIMP = $${GIMP-gimp}
@@ -38,6 +53,8 @@ testsdl$(EXEEXT): $(OBJ)
 	$(CXX) -c $(MY_CXXFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o '$(@)' '$(<)'
 .xcf.png:
 	$(MY_GIMP) -i -b '(let* ((image (car (gimp-file-load RUN-NONINTERACTIVE "$(<)" "$(<)")))) (file-png-save-defaults RUN-NONINTERACTIVE image (car (gimp-image-merge-visible-layers image CLIP-TO-IMAGE)) "$(@)" "$(@)"))' -b '(gimp-quit FALSE)'
+.svg.png:
+	inkscape -e '$(@)' -d 120 '$(<)'
 
 $(OBJ) $(RASTERS): Makefile
 
