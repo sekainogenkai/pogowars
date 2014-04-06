@@ -4,7 +4,9 @@
 #include "main.hxx"
 
 
-menu_game_mode::menu_game_mode(SDL_Renderer *ren){
+menu_game_mode::menu_game_mode(SDL_Renderer *ren, one_player_game_mode *my_one_player_game_mode)
+: my_one_player_game_mode(my_one_player_game_mode)
+{
 	menuPosition = MENU_POSITION_START;
 	mainMenu = true;
 	textPos_x = 0;
@@ -13,6 +15,8 @@ menu_game_mode::menu_game_mode(SDL_Renderer *ren){
 	numberOfShade = 0;
     numberOfShade_wanted = 0;
     mainMenuVisible = true;
+    blueReady = false;
+    redReady = false;
 	up = down = left = right = up2 = down2 = left2 = right2 = false;
 	tex_menuBack = loadTexture(ren, "menuBack.png");
 	tex_startGame = loadTexture(ren, "startGame.png");
@@ -100,13 +104,15 @@ bool menu_game_mode::processEvents(SDL_Event *event, int *current_game_mode){
 			showHelp = false;
 			break;
 			
-		case SDLK_RETURN:
-		case SDLK_KP_ENTER:
-			*current_game_mode = menuPosition;
-			break;
+		
 		}
 		break;
 	}
+	if (redReady && blueReady){
+		*current_game_mode = 1;
+	}
+	if (false)
+		my_one_player_game_mode->set_map("one");
 	return false;
 }
 

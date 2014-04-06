@@ -6,10 +6,11 @@ extern "C" {
 }
 
 #include "game_mode.hxx"
+#include "one_player_game_mode.hxx"
 
 class menu_game_mode : public game_mode {
 public:
-	menu_game_mode(SDL_Renderer *ren);
+	menu_game_mode(SDL_Renderer *ren, one_player_game_mode *my_one_player_game_mode);
 
 	virtual bool processEvents(SDL_Event *event, int *current_game_mode);
 	virtual void animate();
@@ -17,6 +18,7 @@ public:
 	virtual ~menu_game_mode();
 
 private:
+	one_player_game_mode *my_one_player_game_mode;
 	bool up, down, left, right;
 	bool up2, down2, left2, right2;
 	enum menu_position {

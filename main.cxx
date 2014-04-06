@@ -96,14 +96,13 @@ int main(int argc, char *argv[])
 	bool quit = false;
 	SDL_Event event;
 	SDL_ShowCursor(SDL_DISABLE);
-	
+
+	one_player_game_mode *my_one_player_game_mode = new one_player_game_mode(ren);
 	game_mode *game_modes[] = {
-		new menu_game_mode(ren),
-		new one_player_game_mode(ren, false),
-		new one_player_game_mode(ren, true),
+		new menu_game_mode(ren, my_one_player_game_mode),
+		my_one_player_game_mode,
 	};
 	int current_game_mode = 0;
-
 
     while (!quit)
     {

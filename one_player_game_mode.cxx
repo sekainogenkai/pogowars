@@ -74,8 +74,9 @@ textured_circle::~textured_circle() {
 		/*} else std::cerr << "not destryojing thing " << ((size_t)tex) << " because I am " << ((size_t)(void*)this) << " instead of " << ((size_t)this_that_should_kill_tex) << std::endl;*/
 }
 
-one_player_game_mode::one_player_game_mode(SDL_Renderer *ren, bool twoPlayerMode)
-: defaultPlayer(ren, "playerOne.png", !twoPlayerMode ? 1920*.5 : 1920*.9, !twoPlayerMode ? 1080*.5 : 1080 *.1, 37, 15)   //The radius which is the second to last variable taken should normally be 37
+one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
+: twoPlayerMode(true)
+, defaultPlayer(ren, "playerOne.png", !twoPlayerMode ? 1920*.5 : 1920*.9, !twoPlayerMode ? 1080*.5 : 1080 *.1, 37, 15)   //The radius which is the second to last variable taken should normally be 37
 , player(defaultPlayer)
 , defaultPlayerTwo(ren, "playerTwo.png", 1920*.1, 1080*.9, 37, 15)   //The radius which is the second to last variable taken should normally be 37
 , playerTwo(defaultPlayerTwo)
@@ -84,7 +85,6 @@ one_player_game_mode::one_player_game_mode(SDL_Renderer *ren, bool twoPlayerMode
 , defaultFear(ren, "fear.png", 1920*.9, 1080*.9, 37, 17)  //24
 , fear(defaultFear)
 , yinAndYangCircle(ren, "yinAndYang.png", 1920/2, 1080/2, 1920/2, 0)
-
 {
 	
 	this->twoPlayerMode = twoPlayerMode;
@@ -123,6 +123,20 @@ one_player_game_mode::one_player_game_mode(SDL_Renderer *ren, bool twoPlayerMode
 	
 	left = right = up = down = false;
 	left2 = right2 = up2 = down2 = false;
+}
+
+void one_player_game_mode::set_map(const char *map){
+	// Unload current map here...
+	
+	// Load new map here...
+	if (!strcmp(map, "one")) {
+		set_map_one:
+		if (true);
+	} else {
+		// Handle bad map specification here.
+		goto set_map_one;
+	}
+	// Be done.
 }
 
 void one_player_game_mode::clear(){

@@ -3,6 +3,7 @@
 
 extern "C" {
 #include <SDL.h>
+#include <math.h>
 }
 
 #include "game_mode.hxx"
@@ -58,8 +59,9 @@ public:
 
 class one_player_game_mode : public game_mode {
 public:
-	one_player_game_mode(SDL_Renderer *ren, bool twoPlayerMode);
+	one_player_game_mode(SDL_Renderer *ren);
 
+	void set_map(const char *map);
 	virtual bool processEvents(SDL_Event *event, int *current_game_mode);
 	virtual void animate();
 	virtual void render(SDL_Renderer *ren, TTF_Font *font);
@@ -97,4 +99,4 @@ private:
 	bool showScore;
 };
 
-#endif /* _TESTSDL_ONE_PLAYER_GAME_MODE_HXX */
+#                                                                                       endif /* _TESTSDL_ONE_PLAYER_GAME_MODE_HXX */
