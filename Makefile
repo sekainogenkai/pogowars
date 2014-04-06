@@ -7,7 +7,7 @@ SDL2_PKG = sdl2 SDL2_image SDL2_ttf
 LIBS = $$(pkg-config --libs $(SDL2_PKG))
 MY_CXXFLAGS = -Wall $$(pkg-config --cflags $(SDL2_PKG))
 EXEEXT = .exe
-OBJ = main.o game_mode.o menu_game_mode.o one_player_game_mode.o
+OBJ = camera.o main.o game_mode.o menu_game_mode.o one_player_game_mode.o
 RASTERS = \
 	menuBack.png \
 	startGame.png \

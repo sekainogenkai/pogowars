@@ -7,6 +7,7 @@ extern "C" {
 #include <SDL_ttf.h>
 }
 
+#include "camera.hxx"
 #include "one_player_game_mode.hxx"
 #include "main.hxx"
 
@@ -57,12 +58,13 @@ textured_circle::textured_circle(SDL_Renderer *ren, const char *texfile, double 
 	tex = loadTexture(ren, texfile);
 }
 
-void textured_circle::render(SDL_Renderer *ren) {
+void textured_circle::render(SDL_Renderer *ren, camera *my_camera) {
 	SDL_Rect dst;
 	dst.x = position_x - radius;
 	dst.y = position_y - radius;
 	dst.w = radius*2;
 	dst.h = radius*2;
+	my_camera->transform(&dst);
 	SDL_RenderCopyEx(ren, tex, NULL, &dst, angle, NULL, SDL_FLIP_NONE);
 }
 
@@ -75,7 +77,8 @@ textured_circle::~textured_circle() {
 }
 
 one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
-: twoPlayerMode(true)
+: my_camera(1920, 1080, 1920, 1080)
+, twoPlayerMode(true)
 , defaultPlayer(ren, "playerOne.png", !twoPlayerMode ? 1920*.5 : 1920*.9, !twoPlayerMode ? 1080*.5 : 1080 *.1, 37, 15)   //The radius which is the second to last variable taken should normally be 37
 , player(defaultPlayer)
 , defaultPlayerTwo(ren, "playerTwo.png", 1920*.1, 1080*.9, 37, 15)   //The radius which is the second to last variable taken should normally be 37
@@ -428,7 +431,10 @@ void one_player_game_mode::animate(){
 	yinAndYangCircleLogic(&anger, &fear, &yinAndYangCircle);
 	
 	
-	
+	// Configure the camera.
+	my_camera.clear();
+	my_camera.considerObject(player.position_x, player.position_y, defaultPlayer.radius * 2);
+	my_camera.considerObject(playerTwo.position_x, playerTwo.position_y, defaultPlayer.radius * 2);
 }
 
 
@@ -436,23 +442,20 @@ void one_player_game_mode::animate(){
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
-	
-	SDL_RenderCopy(ren, tex_map, NULL, NULL);
-	
-	SDL_Rect dst;
-	
-	
-	
+	SDL_Rect dst = {0, 0, 1920, 1080, };
+	my_camera.transform(&dst);
+	SDL_RenderCopy(ren, tex_map, NULL, &dst);
+
 	//(<expression> <bool expression>) ? <if true> : <if false>
 	//Background balls being rendered
 	for (size_t i = 0; i < ARRAY_LENGTH(rcircle); i++){
 			dst.x = rcircle[i].position_x - rcircle[i].radius;
 			dst.y = rcircle[i].position_y - rcircle[i].radius;
 			dst.w = dst.h = rcircle[i].radius * 2;
+			my_camera.transform(&dst);
 			SDL_RenderCopyEx(ren, !twoPlayerMode || i < ARRAY_LENGTH(rcircle)/2 ? tex_rcircle : tex_rcircle2, NULL, &dst, rcircle[i].angle, NULL, SDL_FLIP_NONE);
-		
 	}
-	
+
 	// Watermelon particles.... yeah Watermelons because I can do whatever I want
 	for (size_t i = 0; i < ARRAY_LENGTH(watermelons); i++)
 		if (watermelons[i].enabled)
@@ -460,32 +463,34 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			dst.x = watermelons[i].position_x - watermelons[i].radius;
 			dst.y = watermelons[i].position_y - watermelons[i].radius;
 			dst.w = dst.h = watermelons[i].radius * 2;
+			my_camera.transform(&dst);
 			SDL_RenderCopyEx(ren, tex_watermelon, NULL, &dst, watermelons[i].angle, NULL, SDL_FLIP_NONE);
 		}
-	
-	
-	
-	
+
 	//Yin and yang circle RENDER
-	yinAndYangCircle.render(ren);
+	yinAndYangCircle.render(ren, &my_camera);
 
 	// Player one RENDER
-	player.render(ren);
+	player.render(ren, &my_camera);
 	//Player two RENDER
 	if(twoPlayerMode)
-		playerTwo.render(ren);
+		playerTwo.render(ren, &my_camera);
 	
 	// Anger ball renderer RENDER
-	anger.render(ren);
+	anger.render(ren, &my_camera);
 	
 	
 	
 	//Fear RENDER
-	fear.render(ren);
-	
-	SDL_RenderCopy(ren, tex_wall, NULL, NULL);
-	
-	
+	fear.render(ren, &my_camera);
+
+	dst.x = 0;
+	dst.y = 0;
+	dst.w = 1920;
+	dst.h = 1080;
+	my_camera.transform(&dst);
+	SDL_RenderCopy(ren, tex_wall, NULL, &dst);
+
 	//Score being displayed constantly
 	if (!twoPlayerMode){
 		SDL_Color white = {255, 255, 255};
@@ -508,7 +513,8 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			dst.x = (1920 - dst.w)/2;
 			SDL_RenderCopy(ren, tex_score, NULL, &dst);
 			SDL_DestroyTexture(tex_score);
-		
+
+
 			SDL_RenderCopy(ren, tex_endGame, NULL, NULL);
 		}
 	}
@@ -537,13 +543,7 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			dst.x = (1920 - dst.w)/2;
 			SDL_RenderCopy(ren, tex_score, NULL, &dst);
 			SDL_DestroyTexture(tex_score);
-		if (showScore)	{
-			if (playerRadiusDifference < 0){
-				SDL_RenderCopy(ren, tex_rightWin, NULL, NULL);
-			}else{
-				SDL_RenderCopy(ren, tex_leftWin, NULL, NULL);
-			}
-		}
+		
 	}
 }
 

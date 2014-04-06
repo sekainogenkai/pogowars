@@ -6,6 +6,7 @@ extern "C" {
 #include <math.h>
 }
 
+#include "camera.hxx"
 #include "game_mode.hxx"
 
 class circle {
@@ -44,7 +45,7 @@ private:
 public:
 	textured_circle(SDL_Renderer *ren, const char *texfile, double start_x, double start_y, double radius, double max_speed);
 	
-	void render(SDL_Renderer *ren);
+	void render(SDL_Renderer *ren, camera *my_camera);
 	
 	virtual ~textured_circle();
 };
@@ -70,6 +71,7 @@ public:
 private:
 	void clear();
 
+	camera my_camera; 
 	bool twoPlayerMode;
 	textured_circle defaultPlayer, player;
 	textured_circle defaultPlayerTwo, playerTwo;
@@ -99,4 +101,4 @@ private:
 	bool showScore;
 };
 
-#                                                                                       endif /* _TESTSDL_ONE_PLAYER_GAME_MODE_HXX */
+#endif /* _TESTSDL_ONE_PLAYER_GAME_MODE_HXX */
