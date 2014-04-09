@@ -42,9 +42,14 @@ private:
 	bool  mainMenu;
 	bool mainMenuVisible;
 	bool showHelp;
+	bool inMapChoose;
 	int textPos_x;
 	int numberOfShade;
     int numberOfShade_wanted;
+    //new map int
+    int map_menu_pos;
+    int map_text_pos;
+    int map_text_pos_actual;
 	SDL_Texture *tex_menuBack;
 	SDL_Texture *tex_startGame;
 	SDL_Texture *tex_settings;
@@ -66,6 +71,10 @@ private:
 	SDL_Texture *tex_inQuit;
 	SDL_Texture *tex_BACK;
 	SDL_Texture *tex_BACK2;
+	SDL_Texture *tex_NAMES_MAPS;
+	SDL_Texture *tex_THUMB_SkyBridge;
+	SDL_Texture *tex_THUMB_SmokeRoom;
+	SDL_Texture *tex_inMapChoose;
 	int yinAndYangAngle;
 };
 

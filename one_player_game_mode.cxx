@@ -433,8 +433,8 @@ void one_player_game_mode::animate(){
 	
 	// Configure the camera.
 	my_camera.clear();
-	my_camera.considerObject(player.position_x, player.position_y, defaultPlayer.radius * 2);
 	my_camera.considerObject(playerTwo.position_x, playerTwo.position_y, defaultPlayer.radius * 2);
+	my_camera.considerObject(player.position_x, player.position_y, defaultPlayer.radius * 2);
 }
 
 

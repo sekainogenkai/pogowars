@@ -39,6 +39,12 @@ menu_game_mode::menu_game_mode(SDL_Renderer *ren, one_player_game_mode *my_one_p
 	tex_inQuit = loadTexture (ren, "inQuit.png");
 	tex_BACK = loadTexture (ren, "BACK.png");
 	tex_BACK2 = loadTexture (ren, "BACK2.png");
+	tex_NAMES_MAPS = loadTexture (ren, "NAMES_MAPS.png");
+	tex_THUMB_SkyBridge = loadTexture (ren, "THUMB_SkyBridge.png");
+	tex_THUMB_SmokeRoom =  loadTexture (ren, "THUMB_SmokeRoom.png");
+	tex_inMapChoose = loadTexture (ren, "inMapChoose.png");
+	
+	
 	yinAndYangAngle = 10;
 }
 
@@ -109,7 +115,7 @@ bool menu_game_mode::processEvents(SDL_Event *event, int *current_game_mode){
 		break;
 	}
 	if (redReady && blueReady){
-		*current_game_mode = 1;
+		//*current_game_mode = 1;
 	}
 	if (false)
 		my_one_player_game_mode->set_map("one");
@@ -130,6 +136,10 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 		redJoin_y = -1080;
 		blueJoin_y = -1080;
 		credits_x = -1920;
+		map_text_pos = 0;
+		map_menu_pos = 1;
+		map_text_pos = 503;
+		map_text_pos_actual = 503;
 		blueJoin = false;
 		redJoin = false;
 		redReady = false;
@@ -137,6 +147,7 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 		mainMenuVisible = true;
 		redBack = false;
 		blueBack = false;
+		inMapChoose = false;
 	// Menu position
 		if ((up || up2) && menuPosition > MENU_POSITION_START)
 			menuPosition = static_cast<menu_position>(menuPosition - 1);
@@ -218,8 +229,49 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 		}else{
 			numberOfShade_wanted = 0;
 		}
+		
+		if (inMapChoose){  // MAP CHOOSE +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ MAP CHOOSE BEACON
+			
+				SDL_RenderCopy(ren, tex_inMapChoose,NULL, NULL);
+				//Moving up and down
+				if ((up || up2) && map_menu_pos >1){
+					map_menu_pos -= 1;
+				}
+				if ((down || down2) && map_menu_pos <2){
+					map_menu_pos += 1;
+				}
+				
+				//map display
+				dst.x = 970;
+				dst.y = 140;
+				
+				if (map_menu_pos == 1){
+					SDL_QueryTexture(tex_THUMB_SmokeRoom, NULL, NULL, &dst.w, &dst.h);
+					SDL_RenderCopy(ren, tex_THUMB_SmokeRoom, NULL, &dst);
+				}
+				if (map_menu_pos == 2){
+					SDL_QueryTexture(tex_THUMB_SkyBridge, NULL, NULL, &dst.w, &dst.h);
+					SDL_RenderCopy(ren, tex_THUMB_SkyBridge, NULL, &dst);
+				}
+				
+				map_text_pos = 610 - map_menu_pos*113;
+				for (int i=0; i<9; i++){
+					if (map_text_pos < map_text_pos_actual)
+						map_text_pos_actual--;
+					if (map_text_pos > map_text_pos_actual)
+						map_text_pos_actual++;
+				}
+				
+				dst.x = 223;
+				dst.y = map_text_pos_actual;
+				SDL_QueryTexture(tex_NAMES_MAPS, NULL, NULL, &dst.w, &dst.h);
+				SDL_RenderCopy(ren, tex_NAMES_MAPS, NULL, &dst);
+		}
+		
+		
+		
 	// If out of main menu
-	if (!mainMenu){
+	if (!mainMenu && !inMapChoose){
 		switch (menuPosition)
 		{
 		case MENU_POSITION_START: //Start Game
@@ -313,6 +365,9 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 				dst.x = 1658;
 				SDL_QueryTexture(tex_READY2, NULL, NULL, &dst.w, &dst.h);
 				SDL_RenderCopy(ren, tex_READY2,NULL, &dst);
+			if (redReady && blueReady){
+					inMapChoose = true;
+				}
 			}
 			break;
 		case MENU_POSITION_SETTINGS: //Settings
@@ -334,7 +389,7 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			}
 			break;
 		case MENU_POSITION_QUIT: //Quit
-			numberOfShade_wanted = 60;
+			numberOfShade_wanted = 80;
 			dst.x = 640;
 			dst.y = 360;
 			SDL_QueryTexture(tex_inQuit, NULL, NULL, &dst.w, &dst.h);
@@ -347,8 +402,15 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 				
 			}
 			break;
+			
+			
+			
 		} // switch (menuPosition)
+			
 	}
+	
+	
+	
 	
 	// Must be done after all input
 	up = down = left = right = up2 = down2 = left2 = right2 = false;
@@ -385,4 +447,8 @@ menu_game_mode::~menu_game_mode(){
 	SDL_DestroyTexture(tex_inQuit);
 	SDL_DestroyTexture(tex_BACK);
 	SDL_DestroyTexture(tex_BACK2);
+	SDL_DestroyTexture(tex_NAMES_MAPS);
+	SDL_DestroyTexture(tex_THUMB_SkyBridge);
+	SDL_DestroyTexture(tex_THUMB_SmokeRoom);
+	SDL_DestroyTexture(tex_inMapChoose);
 }

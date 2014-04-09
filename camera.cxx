@@ -15,24 +15,24 @@ camera::camera(int levelWidth, int levelHeight, int displayWidth, int displayHei
 
 void camera::clear()
 {
-	leftMost = -1;
-	rightMost = -1;
-	topMost = -1;
-	bottMost = -1;
+	leftMost = levelWidth;
+	rightMost = 0;
+	topMost = levelHeight;
+	bottMost = 0;
 }
 
-const int camera::width_min = 1440;
-const int camera::height_min = 900;
+const int camera::width_min = 1440; 
+const int camera::height_min = 900; 
 
 void camera::considerObject(int x, int y, int clearRadius)
 {
-	if (leftMost == -1 || leftMost > x - clearRadius)
+	if (leftMost > x - clearRadius)
 		leftMost = x - clearRadius;
-	if (rightMost == -1 || rightMost < x + clearRadius)
+	if (rightMost < x + clearRadius)
 		rightMost = x + clearRadius;
-	if (topMost == -1 || topMost > y - clearRadius)
+	if (topMost > y - clearRadius)
 		topMost = y - clearRadius;
-	if (bottMost == -1 || bottMost < y + clearRadius)
+	if (bottMost < y + clearRadius)
 		bottMost = y + clearRadius;
 
 	// Calculate the transformation stuff for fun even though we probably

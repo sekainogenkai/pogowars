@@ -31,6 +31,10 @@ RASTERS = \
 	BACK.png \
 	BACK2.png \
 	inQuit.png \
+	NAMES_MAPS.png \
+	THUMB_SkyBridge.png \
+	THUMB_SmokeRoom.png \
+	inMapChoose.png \
 	pakman.png \
 	Angry_Chase.png \
 	Map.png \
@@ -41,6 +45,7 @@ RASTERS = \
 	yinAndYang.png \
 	Wall.png \
 	watermelon.png \
+
 	
 
 MY_GIMP = $${GIMP-gimp}
