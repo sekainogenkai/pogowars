@@ -79,9 +79,9 @@ textured_circle::~textured_circle() {
 one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 : my_camera(1920, 1080, 1920, 1080)
 , twoPlayerMode(true)
-, defaultPlayer(ren, "playerOne.png", !twoPlayerMode ? 1920*.5 : 1920*.9, !twoPlayerMode ? 1080*.5 : 1080 *.1, 37, 15)   //The radius which is the second to last variable taken should normally be 37
+, defaultPlayer(ren, "blueBody.png", !twoPlayerMode ? 1920*.5 : 1920*.9, !twoPlayerMode ? 1080*.5 : 1080 *.1, 37, 15)   //The radius which is the second to last variable taken should normally be 37
 , player(defaultPlayer)
-, defaultPlayerTwo(ren, "playerTwo.png", 1920*.1, 1080*.9, 37, 15)   //The radius which is the second to last variable taken should normally be 37
+, defaultPlayerTwo(ren, "redBody.png", 1920*.1, 1080*.9, 37, 15)   //The radius which is the second to last variable taken should normally be 37
 , playerTwo(defaultPlayerTwo)
 , defaultAnger(ren, "anger.png", 1920*.1, 1080*.1, 37, 15) //20
 , anger(defaultAnger)

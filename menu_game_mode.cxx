@@ -43,6 +43,8 @@ menu_game_mode::menu_game_mode(SDL_Renderer *ren, one_player_game_mode *my_one_p
 	tex_THUMB_SkyBridge = loadTexture (ren, "THUMB_SkyBridge.png");
 	tex_THUMB_SmokeRoom =  loadTexture (ren, "THUMB_SmokeRoom.png");
 	tex_inMapChoose = loadTexture (ren, "inMapChoose.png");
+	tex_greenUp = loadTexture (ren, "greenUp.png");
+	tex_greenDown = loadTexture (ren, "greenDown.png");
 	
 	
 	yinAndYangAngle = 10;
@@ -114,8 +116,8 @@ bool menu_game_mode::processEvents(SDL_Event *event, int *current_game_mode){
 		}
 		break;
 	}
-	if (redReady && blueReady){
-		//*current_game_mode = 1;
+	if (inMapChoose && (right || right2)){
+		*current_game_mode = 1;
 	}
 	if (false)
 		my_one_player_game_mode->set_map("one");
@@ -140,6 +142,8 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 		map_menu_pos = 1;
 		map_text_pos = 503;
 		map_text_pos_actual = 503;
+		arrowShowUp = 0;
+	    arrowShowDown = 0;
 		blueJoin = false;
 		redJoin = false;
 		redReady = false;
@@ -230,21 +234,49 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			numberOfShade_wanted = 0;
 		}
 		
-		if (inMapChoose){  // MAP CHOOSE +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ MAP CHOOSE BEACON
+		if (inMapChoose){  // MAP CHOOSE +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ MAP CHOOSE BEACON Because it is in a weird spot
 			
 				SDL_RenderCopy(ren, tex_inMapChoose,NULL, NULL);
+				
 				//Moving up and down
-				if ((up || up2) && map_menu_pos >1){
+				if ((up || up2) && map_menu_pos > 1){
+					
 					map_menu_pos -= 1;
 				}
-				if ((down || down2) && map_menu_pos <2){
+				if ((down || down2) && map_menu_pos < 2){
+					
 					map_menu_pos += 1;
 				}
+				
+				//Map text display
+				dst.x = 223;
+				dst.y = map_text_pos_actual;
+				SDL_QueryTexture(tex_NAMES_MAPS, NULL, NULL, &dst.w, &dst.h);
+				SDL_RenderCopy(ren, tex_NAMES_MAPS, NULL, &dst);
+				
+				//Display up and or down arrows
+				
+				if (up || up2){
+					arrowShowUp = 10;
+				}
+				if (down || down2){
+					arrowShowDown = 10;
+				}
+				if (arrowShowUp > 0){
+					arrowShowUp--;
+					SDL_RenderCopy(ren, tex_greenUp, NULL, NULL);
+				}
+				if (arrowShowDown > 0){
+					arrowShowDown--;
+					SDL_RenderCopy(ren, tex_greenDown, NULL, NULL);
+				}
+				
 				
 				//map display
 				dst.x = 970;
 				dst.y = 140;
 				
+				//Displaying the thumbnails for the maps
 				if (map_menu_pos == 1){
 					SDL_QueryTexture(tex_THUMB_SmokeRoom, NULL, NULL, &dst.w, &dst.h);
 					SDL_RenderCopy(ren, tex_THUMB_SmokeRoom, NULL, &dst);
@@ -254,18 +286,17 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 					SDL_RenderCopy(ren, tex_THUMB_SkyBridge, NULL, &dst);
 				}
 				
+				//Map text logic
 				map_text_pos = 610 - map_menu_pos*113;
-				for (int i=0; i<9; i++){
+				for (int i=0; i<12; i++){
 					if (map_text_pos < map_text_pos_actual)
 						map_text_pos_actual--;
 					if (map_text_pos > map_text_pos_actual)
 						map_text_pos_actual++;
 				}
 				
-				dst.x = 223;
-				dst.y = map_text_pos_actual;
-				SDL_QueryTexture(tex_NAMES_MAPS, NULL, NULL, &dst.w, &dst.h);
-				SDL_RenderCopy(ren, tex_NAMES_MAPS, NULL, &dst);
+				
+				
 		}
 		
 		
@@ -305,7 +336,7 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			if (!redJoin && redJoin_y > -1080){
 				redJoin_y -= 90;
 			}
-			if (blueJoin || redJoin){
+			if (blueJoin && redJoin){
 				mainMenuVisible = false;
 			}
 			
@@ -377,7 +408,7 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			break;
 		case MENU_POSITION_CREDITS: //Credits
 			if (credits_x <0){
-				credits_x += 100;
+				credits_x += 110;
 			}
 			dst.x = credits_x;
 			dst.y = 0;
@@ -451,4 +482,6 @@ menu_game_mode::~menu_game_mode(){
 	SDL_DestroyTexture(tex_THUMB_SkyBridge);
 	SDL_DestroyTexture(tex_THUMB_SmokeRoom);
 	SDL_DestroyTexture(tex_inMapChoose);
+	SDL_DestroyTexture(tex_greenUp);
+	SDL_DestroyTexture(tex_greenDown);
 }

@@ -35,6 +35,8 @@ RASTERS = \
 	THUMB_SkyBridge.png \
 	THUMB_SmokeRoom.png \
 	inMapChoose.png \
+	greenDown.png \
+	greenUp.png \
 	pakman.png \
 	Angry_Chase.png \
 	Map.png \

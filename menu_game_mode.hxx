@@ -29,6 +29,8 @@ private:
 		} menuPosition;
 	int menuRod_y;
 	int blinkingLights;
+	int arrowShowUp;
+	int arrowShowDown;
 	int credits_x;
 	int redJoin_y;
 	int blueJoin_y;
@@ -75,6 +77,8 @@ private:
 	SDL_Texture *tex_THUMB_SkyBridge;
 	SDL_Texture *tex_THUMB_SmokeRoom;
 	SDL_Texture *tex_inMapChoose;
+	SDL_Texture *tex_greenDown;
+	SDL_Texture *tex_greenUp;
 	int yinAndYangAngle;
 };
 
