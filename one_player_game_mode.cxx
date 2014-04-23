@@ -79,9 +79,9 @@ textured_circle::~textured_circle() {
 one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 : my_camera(1920, 1080, 1920, 1080)
 , twoPlayerMode(true)
-, defaultPlayer(ren, "blueBody.png", !twoPlayerMode ? 1920*.5 : 1920*.9, !twoPlayerMode ? 1080*.5 : 1080 *.1, 37, 15)   //The radius which is the second to last variable taken should normally be 37
+, defaultPlayer(ren, "blueBody.png", !twoPlayerMode ? 1920*.5 : 1920*.9, !twoPlayerMode ? 1080*.5 : 1080 *.1, 160, 15)   //The radius which is the second to last variable taken should normally be 37
 , player(defaultPlayer)
-, defaultPlayerTwo(ren, "redBody.png", 1920*.1, 1080*.9, 37, 15)   //The radius which is the second to last variable taken should normally be 37
+, defaultPlayerTwo(ren, "redBody.png", 1920*.1, 1080*.9, 160, 15)   //The radius which is the second to last variable taken should normally be 37
 , playerTwo(defaultPlayerTwo)
 , defaultAnger(ren, "anger.png", 1920*.1, 1080*.1, 37, 15) //20
 , anger(defaultAnger)
@@ -92,7 +92,6 @@ one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 	
 	this->twoPlayerMode = twoPlayerMode;
 	
-	wallWidth = 80;
 	angerAccelerationRatio = 220; // 200
 	fearAccelerationRatio = 190; // 190
 	playerSeedStrength = .01;
@@ -101,22 +100,25 @@ one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 	lowerRadius = 5;
 	radiusDifferentMax = 15 * 2;
 	
-	tex_map = loadTexture(ren, "Map.png");
-	tex_wall = loadTexture(ren, "Wall.png");
+	wallWidth = 100;
+	
+	tex_map = loadTexture(ren, "smokeRoom.png");
 	tex_watermelon = loadTexture(ren, "watermelon.png");
 	tex_rcircle = loadTexture(ren, "rcircle.png");
 	tex_endGame = loadTexture(ren, "endGame.png");
 	tex_rcircle2 = loadTexture(ren, "rcircle2.png");
 	tex_leftWin = loadTexture(ren, "leftWin.png");
 	tex_rightWin = loadTexture(ren, "rightWin.png");
+	tex_foreground = loadTexture(ren, "smoke_Room_Foreground.png");
+	tex_smoke_Room_Furnace = loadTexture(ren, "smoke_Room_Furnace.png");
 	
 	showScore = false;
 	
 	
 	//Rcircle start points and velocities
 	for (size_t i = 0; i < ARRAY_LENGTH(rcircle); i++){
-		rcircle[i].position_x = wallWidth + fmod(i * 1029 + 257 * (i % 7), 1920 - 2*wallWidth);
-		rcircle[i].position_y = wallWidth + fmod(i * 703 + 51 * (i % 13), 1080 - 2*wallWidth);
+		rcircle[i].position_x = wallWidth + fmod(i * 1029 + 257 * (i % 7), 1920 - 2* wallWidth);
+		rcircle[i].position_y = wallWidth + fmod(i * 703 + 51 * (i % 13), 1080 - 2* wallWidth);
 		rcircle[i].velocity_x = 7;
 		rcircle[i].velocity_y = -7;
 		rcircle[i].radius = 10;
@@ -394,12 +396,6 @@ void one_player_game_mode::animate(){
 			if(!showScore)
 				playerTwo.radius -= lowerRadius;
 		}
-	//End game if both players are too small
-		if (player.radius < 20 || playerTwo.radius < 20 || abs(player.radius - playerTwo.radius) >= radiusDifferentMax){
-		
-			showScore = true;
-		
-		}
 		//Player collision
 		circleCollisionDetection(&playerTwo, &player, true, wallWidth);
 	}
@@ -442,7 +438,8 @@ void one_player_game_mode::animate(){
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
-	SDL_Rect dst = {0, 0, 1920, 1080, };
+	SDL_Rect dst;
+	SDL_QueryTexture(tex_map, NULL, NULL, &dst.w, &dst.h);
 	my_camera.transform(&dst);
 	SDL_RenderCopy(ren, tex_map, NULL, &dst);
 
@@ -484,12 +481,6 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	//Fear RENDER
 	fear.render(ren, &my_camera);
 
-	dst.x = 0;
-	dst.y = 0;
-	dst.w = 1920;
-	dst.h = 1080;
-	my_camera.transform(&dst);
-	SDL_RenderCopy(ren, tex_wall, NULL, &dst);
 
 	//Score being displayed constantly
 	if (!twoPlayerMode){
@@ -543,19 +534,32 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			dst.x = (1920 - dst.w)/2;
 			SDL_RenderCopy(ren, tex_score, NULL, &dst);
 			SDL_DestroyTexture(tex_score);
-		
+			
+		//Furnace
+		SDL_QueryTexture(tex_foreground, NULL, NULL, &dst.w, &dst.h);
+		dst.x = dst.y = 0;
+		my_camera.transform(&dst);
+		SDL_RenderCopy(ren, tex_foreground, NULL, &dst);
+			
+		//Foreground
+		SDL_QueryTexture(tex_smoke_Room_Furnace, NULL, NULL, &dst.w, &dst.h);
+		dst.x = 1242;
+		dst.y = 850;
+		my_camera.transform(&dst);
+		SDL_RenderCopy(ren, tex_smoke_Room_Furnace, NULL, &dst);
 	}
 }
 
 one_player_game_mode::~one_player_game_mode(){
 	SDL_DestroyTexture(tex_map);
-	SDL_DestroyTexture(tex_wall);
 	SDL_DestroyTexture(tex_watermelon);
 	SDL_DestroyTexture(tex_rcircle);
 	SDL_DestroyTexture(tex_endGame);
 	SDL_DestroyTexture(tex_rcircle2);
 	SDL_DestroyTexture(tex_leftWin);
 	SDL_DestroyTexture(tex_rightWin);
+	SDL_DestroyTexture(tex_foreground);
+	SDL_DestroyTexture(tex_smoke_Room_Furnace);
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Functions
@@ -583,25 +587,31 @@ static double cart2angle(double x, double y)
 
 static void wallHit (circle *circ, double wallWidth)
 {
+	
+	int topWall = 221;
+	int botWall = 168;
+	int leftWall = 331;
+	int rightWall = 331;
+	
 	//left wall hit
-	if(circ->position_x - circ->radius < wallWidth){
-		circ->position_x = wallWidth + circ->radius;
+	if(circ->position_x - circ->radius < leftWall){
+		circ->position_x = leftWall + circ->radius;
 		circ->velocity_x = fabs(circ->velocity_x);
 	}
 	//right wall hit
-	if(circ->position_x + circ->radius > 1920 - wallWidth){
-		circ->position_x = 1920 - (wallWidth + circ->radius);
+	if(circ->position_x + circ->radius > 1920*1.5 - rightWall){
+		circ->position_x = 1920*1.5 - (rightWall + circ->radius);
 		circ->velocity_x = -fabs(circ->velocity_x);
 	}
 	//top wall hit
-	if(circ->position_y - circ->radius < wallWidth){
-		circ->position_y = wallWidth + circ->radius;
+	if(circ->position_y - circ->radius < topWall){
+		circ->position_y = topWall + circ->radius;
 		circ->velocity_y = fabs(circ->velocity_y);
 	}
 	//bottom wall hit
-	if(circ->position_y + circ->radius > 1080 - wallWidth){
+	if(circ->position_y + circ->radius > 1080*1.5 - botWall){
 		circ->velocity_y = - fabs(circ->velocity_y);
-		circ->position_y = 1080 - (wallWidth + circ->radius);
+		circ->position_y = 1080*1.5 - (botWall + circ->radius);
 	}
 }
 

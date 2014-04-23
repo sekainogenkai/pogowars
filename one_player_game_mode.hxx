@@ -96,6 +96,8 @@ private:
 	SDL_Texture *tex_rcircle2;
 	SDL_Texture *tex_rightWin;
 	SDL_Texture *tex_leftWin;
+	SDL_Texture *tex_foreground;
+	SDL_Texture *tex_smoke_Room_Furnace;
 	bool left, right, up, down;
 	bool left2, right2, up2, down2;
 	bool showScore;

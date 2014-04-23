@@ -37,6 +37,9 @@ RASTERS = \
 	inMapChoose.png \
 	greenDown.png \
 	greenUp.png \
+	smokeRoom.png \
+	smoke_Room_Foreground.png \
+	smoke_Room_Furnace.png \
 	pakman.png \
 	Angry_Chase.png \
 	Map.png \
