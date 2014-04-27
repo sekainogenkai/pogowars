@@ -75,15 +75,6 @@ private:
 	bool twoPlayerMode;
 	textured_circle defaultPlayer, player;
 	textured_circle defaultPlayerTwo, playerTwo;
-	textured_circle defaultAnger, anger;
-	textured_circle defaultFear, fear;
-	textured_circle yinAndYangCircle;
-	particle_circle watermelons[3];
-	particle_circle rcircle[50];
-	double wallWidth;
-	double fearAccelerationRatio;
-	double angerAccelerationRatio;
-	double playerSeedStrength;
 	double playerAcceleration;
 	int score;
 	int radiusDifferentMax;
