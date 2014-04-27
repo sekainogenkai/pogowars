@@ -34,11 +34,10 @@ void camera::considerObject(int x, int y, int clearRadius)
 		topMost = y - clearRadius;
 	if (bottMost < y + clearRadius)
 		bottMost = y + clearRadius;
+}
 
-	// Calculate the transformation stuff for fun even though we probably
-	// don't need it yet. This assumes that considerObject() will be called
-	// for a small number of objects to uncomplicate transform().
-
+void camera::calculateTransforms()
+{
 	// Respect minwidth/height
 	int width_min_correction = width_min - (rightMost - leftMost);
 	if (width_min_correction > 0)

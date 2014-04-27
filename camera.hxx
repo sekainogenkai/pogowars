@@ -16,6 +16,7 @@ public:
 	camera(int levelWidth, int levelHeight, int displayWidth, int displayHeight);
 	void clear();
 	void considerObject(int x, int y, int clearRadius);
+	void calculateTransforms();
 	void transform(SDL_Rect *r);
 	virtual ~camera();
 private:
