@@ -80,13 +80,6 @@ private:
 	int radiusDifferentMax;
 	int lowerRadius;
 	SDL_Texture *tex_map;
-	SDL_Texture *tex_wall;
-	SDL_Texture *tex_watermelon;
-	SDL_Texture *tex_rcircle;
-	SDL_Texture *tex_endGame;
-	SDL_Texture *tex_rcircle2;
-	SDL_Texture *tex_rightWin;
-	SDL_Texture *tex_leftWin;
 	SDL_Texture *tex_foreground;
 	SDL_Texture *tex_smoke_Room_Furnace;
 	bool left, right, up, down;

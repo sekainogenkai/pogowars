@@ -21,8 +21,8 @@ void camera::clear()
 	bottMost = 0;
 }
 
-const int camera::width_min = 1920/3; 
-const int camera::height_min = 1080/3; 
+const int camera::width_min = 1920; 
+const int camera::height_min = 1080; 
 
 void camera::considerObject(int x, int y, int clearRadius)
 {

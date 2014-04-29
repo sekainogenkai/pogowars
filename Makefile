@@ -42,16 +42,6 @@ RASTERS = \
 	smoke_Room_Furnace.png \
 	redBody.png \
 	blueBody.png \
-	pakman.png \
-	Angry_Chase.png \
-	Map.png \
-	playerOne.png \
-	playerTwo.png \
-	fear.png \
-	anger.png \
-	yinAndYang.png \
-	Wall.png \
-	watermelon.png \
 	
 
 	

@@ -91,12 +91,6 @@ one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 	
 	
 	tex_map = loadTexture(ren, "smokeRoom.png");
-	tex_watermelon = loadTexture(ren, "watermelon.png");
-	tex_rcircle = loadTexture(ren, "rcircle.png");
-	tex_endGame = loadTexture(ren, "endGame.png");
-	tex_rcircle2 = loadTexture(ren, "rcircle2.png");
-	tex_leftWin = loadTexture(ren, "leftWin.png");
-	tex_rightWin = loadTexture(ren, "rightWin.png");
 	tex_foreground = loadTexture(ren, "smoke_Room_Foreground.png");
 	tex_smoke_Room_Furnace = loadTexture(ren, "smoke_Room_Furnace.png");
 	
@@ -222,6 +216,7 @@ bool one_player_game_mode::processEvents(SDL_Event *event, int *current_game_mod
 
 void one_player_game_mode::animate(){
 	//Player one Key things
+	
 		if (up && !down){
 			player.velocity_y -= playerAcceleration;
 		}
@@ -295,6 +290,8 @@ void one_player_game_mode::animate(){
 void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	SDL_Rect dst;
 	SDL_QueryTexture(tex_map, NULL, NULL, &dst.w, &dst.h);
+	dst.x = 0;
+	dst.y =0;
 	my_camera.transform(&dst);
 	SDL_RenderCopy(ren, tex_map, NULL, &dst);
 
@@ -319,21 +316,7 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 		dst.x = (1920 - dst.w)/2;
 		SDL_RenderCopy(ren, tex_score, NULL, &dst);
 		SDL_DestroyTexture(tex_score);
-		//Ending score
-		if (showScore) 
-		{
-			SDL_Surface *score_surface = TTF_RenderText_Solid(font, ("Hah, you lose " + str((int)score)).c_str(), white);
-			SDL_Texture *tex_score = SDL_CreateTextureFromSurface(ren, score_surface);
-			SDL_FreeSurface(score_surface);
-			SDL_QueryTexture(tex_score, NULL, NULL, &dst.w, &dst.h);
-			dst.y = (1080 - dst.h)/2;
-			dst.x = (1920 - dst.w)/2;
-			SDL_RenderCopy(ren, tex_score, NULL, &dst);
-			SDL_DestroyTexture(tex_score);
-
-
-			SDL_RenderCopy(ren, tex_endGame, NULL, NULL);
-		}
+		
 	}
 	if (twoPlayerMode){
 		SDL_Color blue = {0, 0, 255};
@@ -361,13 +344,13 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			SDL_RenderCopy(ren, tex_score, NULL, &dst);
 			SDL_DestroyTexture(tex_score);
 			
-		//Furnace
+		//Foreground
 		SDL_QueryTexture(tex_foreground, NULL, NULL, &dst.w, &dst.h);
 		dst.x = dst.y = 0;
 		my_camera.transform(&dst);
 		SDL_RenderCopy(ren, tex_foreground, NULL, &dst);
 			
-		//Foreground
+		//Furnace
 		
 		SDL_QueryTexture(tex_smoke_Room_Furnace, NULL, NULL, &dst.w, &dst.h);
 		dst.x = 1242;
@@ -380,12 +363,6 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 
 one_player_game_mode::~one_player_game_mode(){
 	SDL_DestroyTexture(tex_map);
-	SDL_DestroyTexture(tex_watermelon);
-	SDL_DestroyTexture(tex_rcircle);
-	SDL_DestroyTexture(tex_endGame);
-	SDL_DestroyTexture(tex_rcircle2);
-	SDL_DestroyTexture(tex_leftWin);
-	SDL_DestroyTexture(tex_rightWin);
 	SDL_DestroyTexture(tex_foreground);
 	SDL_DestroyTexture(tex_smoke_Room_Furnace);
 }

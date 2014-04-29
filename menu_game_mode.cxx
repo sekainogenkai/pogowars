@@ -212,15 +212,20 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 	
 	
 		// menu shading
-		if (numberOfShade < numberOfShade_wanted){
-			numberOfShade++;
+		const int shadesPerTick = 12;
+		if (numberOfShade < numberOfShade_wanted - shadesPerTick + 1){
+			numberOfShade += shadesPerTick;
 		}
-		if (numberOfShade > numberOfShade_wanted){
-			numberOfShade--;
+		if (numberOfShade > numberOfShade_wanted + shadesPerTick - 1){
+			numberOfShade -= shadesPerTick;
 		}
-	for (int i = 0; i < numberOfShade; i++){
-		SDL_RenderCopy(ren, tex_shade, NULL, NULL);
-	}
+		SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(ren, 0, 0,0, numberOfShade);
+        dst.x = dst.y = 0;
+        dst.w = 1920;
+        dst.h = 1080;
+        SDL_RenderFillRect(ren, &dst);
+        SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_NONE);
 	}
 	
 	// If help instructions
@@ -315,7 +320,12 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			if (blinkingLights > 25)
 				SDL_RenderCopy(ren, tex_startGame_blinkingLights, NULL, NULL);
 
-			numberOfShade_wanted = 50;
+			numberOfShade_wanted = 255;
+			if (numberOfShade == 255){
+				mainMenuVisible = false;
+			}
+			
+			
 			if (down)
 				blueJoin = true;
 			if (down2)
@@ -335,9 +345,6 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			}
 			if (!redJoin && redJoin_y > -1080){
 				redJoin_y -= 90;
-			}
-			if (blueJoin && redJoin){
-				mainMenuVisible = false;
 			}
 			
 			//RENDER both blue and red join
@@ -414,13 +421,13 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			dst.y = 0;
 			SDL_QueryTexture(tex_inCredits, NULL, NULL, &dst.w, &dst.h);
 			SDL_RenderCopy(ren, tex_inCredits,NULL, &dst);
-			numberOfShade_wanted = 50;
+			numberOfShade_wanted = 128+64;
 			if (left || left2){
 				mainMenu = true;
 			}
 			break;
 		case MENU_POSITION_QUIT: //Quit
-			numberOfShade_wanted = 80;
+			numberOfShade_wanted = 128+64;
 			dst.x = 640;
 			dst.y = 360;
 			SDL_QueryTexture(tex_inQuit, NULL, NULL, &dst.w, &dst.h);
@@ -439,8 +446,6 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 		} // switch (menuPosition)
 			
 	}
-	
-	
 	
 	
 	// Must be done after all input
