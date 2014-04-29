@@ -22,7 +22,6 @@ RASTERS = \
 	startGame_clickToJoin.png \
 	startGame_blinkingLights.png \
 	keyboardInstructions.png \
-	shade.png \
 	inCredits.png \
 	redJoin.png \
 	blueJoin.png \

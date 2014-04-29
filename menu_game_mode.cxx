@@ -28,7 +28,6 @@ menu_game_mode::menu_game_mode(SDL_Renderer *ren, one_player_game_mode *my_one_p
 	tex_lightForeground = loadTexture(ren, "lightForeground.png");
 	tex_menuP = loadTexture(ren, "menuP.png");
 	tex_keyboardInstructions = loadTexture (ren, "keyboardInstructions.png");
-	tex_shade = loadTexture (ren, "shade.png");
 	tex_startGame_clickToJoin = loadTexture (ren, "startGame_clickToJoin.png");
 	tex_startGame_blinkingLights = loadTexture (ren, "startGame_blinkingLights.png");
 	tex_inCredits = loadTexture (ren, "inCredits.png");
@@ -474,7 +473,6 @@ menu_game_mode::~menu_game_mode(){
 	SDL_DestroyTexture(tex_lightForeground);
 	SDL_DestroyTexture(tex_menuP);
 	SDL_DestroyTexture(tex_keyboardInstructions);
-	SDL_DestroyTexture(tex_shade);
 	SDL_DestroyTexture(tex_startGame_clickToJoin);
 	SDL_DestroyTexture(tex_startGame_blinkingLights);
 	SDL_DestroyTexture(tex_inCredits);

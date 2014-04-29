@@ -62,7 +62,6 @@ private:
 	SDL_Texture *tex_lightForeground;
 	SDL_Texture *tex_menuP;
 	SDL_Texture *tex_keyboardInstructions;
-	SDL_Texture *tex_shade;
 	SDL_Texture *tex_startGame_clickToJoin;
 	SDL_Texture *tex_startGame_blinkingLights;
 	SDL_Texture *tex_inCredits;
