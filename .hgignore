@@ -5,6 +5,7 @@ Makefile.win
 *.exe
 *.png
 *.ttf
+*.res
 Thumbs.db
 *.orig
 

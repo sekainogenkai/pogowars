@@ -1,0 +1,2 @@
+
+RES = main.res

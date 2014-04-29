@@ -17,5 +17,6 @@ template <class T> static std::string str(const T &o)
 }
 
 SDL_Texture *loadTexture(SDL_Renderer *ren, const char *filename);
+SDL_Surface *loadSurface(const char *filename);
 
 #endif /* _TESTSDL_MAIN_HXX */

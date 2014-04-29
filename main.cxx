@@ -49,13 +49,14 @@ int main(int argc, char *argv[])
 	
 	
 	SDL_Window *win = SDL_CreateWindow("Pogo Duel", 100, 100, 1920, 1080, SDL_WINDOW_MAXIMIZED|SDL_WINDOW_RESIZABLE|SDL_WINDOW_FULLSCREEN_DESKTOP);
-	void SDL_MaximizeWindow(SDL_Window* window);
     if (win == NULL){
 	    std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
 	    return 1;
     }
-    
-    
+
+	SDL_Surface *ico = loadSurface("favicon.png");
+	SDL_SetWindowIcon(win, ico);
+
     //Creating a Renderer: Using hardware accelerated rendering and with vsync. If something goes wrong with that what is written in orange will be printed
     SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
     if (ren == NULL)
@@ -194,7 +195,7 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 
-SDL_Texture *loadTexture(SDL_Renderer *ren, const char *filename)
+SDL_Surface *loadSurface(const char *filename)
 {
 	SDL_Surface *bmp = IMG_Load(filename);
     if (!bmp)
@@ -203,6 +204,12 @@ SDL_Texture *loadTexture(SDL_Renderer *ren, const char *filename)
              abort();
              return NULL;
     }
+    return bmp;
+}
+
+SDL_Texture *loadTexture(SDL_Renderer *ren, const char *filename)
+{
+	SDL_Surface *bmp = loadSurface(filename);
     
     SDL_Texture *tex = SDL_CreateTextureFromSurface(ren, bmp);
     SDL_FreeSurface(bmp);
