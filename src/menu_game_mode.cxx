@@ -428,7 +428,7 @@ void menu_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 			}
 			break;
 		case MENU_POSITION_QUIT: //Quit
-			numberOfShade_wanted = 128+64;
+			numberOfShade_wanted = 128+64+1000;
 			dst.x = 640;
 			dst.y = 360;
 			SDL_QueryTexture(tex_inQuit, NULL, NULL, &dst.w, &dst.h);
