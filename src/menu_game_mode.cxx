@@ -6,6 +6,8 @@
 
 menu_game_mode::menu_game_mode(SDL_Renderer *ren, one_player_game_mode *my_one_player_game_mode)
 : my_one_player_game_mode(my_one_player_game_mode)
+, gearAngle(0)
+, showHelp(false)
 {
 	menuPosition = MENU_POSITION_START;
 	mainMenu = true;

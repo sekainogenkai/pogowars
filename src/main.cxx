@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
 
 	SDL_Surface *ico = loadSurface("favicon.png");
 	SDL_SetWindowIcon(win, ico);
+	SDL_FreeSurface(ico);
 
     //Creating a Renderer: Using hardware accelerated rendering and with vsync. If something goes wrong with that what is written in orange will be printed
     SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
@@ -197,7 +198,7 @@ int main(int argc, char *argv[])
 
 SDL_Surface *loadSurface(const char *filename)
 {
-	SDL_Surface *bmp = IMG_Load(filename);
+	SDL_Surface *bmp = IMG_Load(("images/" + std::string(filename)).c_str());
     if (!bmp)
     {
              std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;

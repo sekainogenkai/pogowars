@@ -8,41 +8,47 @@ SDL2_PKG = sdl2 SDL2_image SDL2_ttf
 LIBS = $$(pkg-config --libs $(SDL2_PKG))
 MY_CXXFLAGS = -Wall $$(pkg-config --cflags $(SDL2_PKG))
 EXEEXT = .exe
-OBJ = camera.o main.o game_mode.o menu_game_mode.o one_player_game_mode.o
+OBJ = \
+	src/camera.o \
+	src/main.o \
+	src/game_mode.o \
+	src/menu_game_mode.o \
+	src/one_player_game_mode.o
+
 RASTERS = \
-	favicon.png \
-	menuBack.png \
-	startGame.png \
-	settings.png \
-	credits.png \
-	quit.png \
-	menuRod.png \
-	menuGear.png \
-	lightForeground.png \
-	menuP.png \
-	shade.png \
-	startGame_clickToJoin.png \
-	startGame_blinkingLights.png \
-	keyboardInstructions.png \
-	inCredits.png \
-	redJoin.png \
-	blueJoin.png \
-	READY.png \
-	READY2.png \
-	BACK.png \
-	BACK2.png \
-	inQuit.png \
-	NAMES_MAPS.png \
-	THUMB_SkyBridge.png \
-	THUMB_SmokeRoom.png \
-	inMapChoose.png \
-	greenDown.png \
-	greenUp.png \
-	smokeRoom.png \
-	smoke_Room_Foreground.png \
-	smoke_Room_Furnace.png \
-	redBody.png \
-	blueBody.png \
+	images/favicon.png \
+	images/menuBack.png \
+	images/startGame.png \
+	images/settings.png \
+	images/credits.png \
+	images/quit.png \
+	images/menuRod.png \
+	images/menuGear.png \
+	images/lightForeground.png \
+	images/menuP.png \
+	images/shade.png \
+	images/startGame_clickToJoin.png \
+	images/startGame_blinkingLights.png \
+	images/keyboardInstructions.png \
+	images/inCredits.png \
+	images/redJoin.png \
+	images/blueJoin.png \
+	images/READY.png \
+	images/READY2.png \
+	images/BACK.png \
+	images/BACK2.png \
+	images/inQuit.png \
+	images/NAMES_MAPS.png \
+	images/THUMB_SkyBridge.png \
+	images/THUMB_SmokeRoom.png \
+	images/inMapChoose.png \
+	images/greenDown.png \
+	images/greenUp.png \
+	images/smokeRoom.png \
+	images/smoke_Room_Foreground.png \
+	images/smoke_Room_Furnace.png \
+	images/redBody.png \
+	images/blueBody.png \
 	
 
 MY_GIMP = $${GIMP-gimp}
@@ -67,5 +73,5 @@ windurrs.mk: Makefile
 $(OBJ) $(RASTERS): Makefile
 
 clean:
-	rm -f $(OBJ) $(RASTERS) testsdl$(EXEEXT)
+	rm -f $(OBJ) $(RASTERS) $(RES) testsdl$(EXEEXT)
 
