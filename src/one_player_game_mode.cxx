@@ -62,7 +62,7 @@ void textured_circle::render(SDL_Renderer *ren, camera *my_camera) {
 	dst.w = radius*2;
 	dst.h = radius*2;
 	my_camera->transform(&dst);
-	SDL_RenderCopyEx(ren, tex, NULL, &dst, angle, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(ren, tex, NULL, &dst, /*/angle/*/ 0, NULL, SDL_FLIP_NONE);
 }
 
 textured_circle::~textured_circle() {
@@ -353,8 +353,8 @@ void one_player_game_mode::render(SDL_Renderer *ren, TTF_Font *font){
 		//Furnace
 		
 		SDL_QueryTexture(tex_smoke_Room_Furnace, NULL, NULL, &dst.w, &dst.h);
-		dst.x = 1242;
-		dst.y = 850;
+		dst.x = 0;
+		dst.y = 0;
 		my_camera.transform(&dst);
 		SDL_RenderCopy(ren, tex_smoke_Room_Furnace, NULL, &dst);
 		
