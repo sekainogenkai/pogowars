@@ -84,7 +84,7 @@ one_player_game_mode::one_player_game_mode(SDL_Renderer *ren)
 	
 	this->twoPlayerMode = twoPlayerMode;
 	
-	playerAcceleration = 1.2;
+	playerAcceleration = .1;
 	score = 0;
 	lowerRadius = 5;
 	radiusDifferentMax = 15 * 2;
@@ -393,10 +393,10 @@ static double cart2angle(double x, double y)
 static void wallHit (circle *circ)
 {
 	
-	int topWall = 221;
-	int botWall = 168;
-	int leftWall = 331;
-	int rightWall = 331;
+	int topWall = 222;
+	int botWall = 1080*1.5 - 1452;
+	int leftWall = 312;
+	int rightWall = leftWall;
 	
 	//left wall hit
 	if(circ->position_x - circ->radius < leftWall){
